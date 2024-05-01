@@ -47,6 +47,7 @@ def remove_slide_number_from_heading(header: str) -> str:
 
     return header
 
+
 def generate_powerpoint_presentation(
         structured_data: str,
         slides_template: str,
@@ -63,12 +64,13 @@ def generate_powerpoint_presentation(
 
     # The structured "JSON" might contain trailing commas, so using json5
     parsed_data = json5.loads(structured_data)
-
+    config = GlobalConfig()
+    
     logging.debug(
         "*** Using PPTX template: %s",
-        GlobalConfig.PPTX_TEMPLATE_FILES[slides_template]['file']
+        config.PPTX_TEMPLATE_FILES[slides_template]['file']
     )
-    presentation = pptx.Presentation(GlobalConfig.PPTX_TEMPLATE_FILES[slides_template]['file'])
+    presentation = pptx.Presentation(config.PPTX_TEMPLATE_FILES[slides_template]['file'])
 
     # The title slide
     title_slide_layout = presentation.slide_layouts[0]

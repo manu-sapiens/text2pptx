@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Presentation</title>
+</head>
+<body>
+    <h1>Create Your PowerPoint Presentation</h1>
+    <form action="/generate_presentation" method="post" id="pptForm">
+        <label for="template">Template:</label>
+        <select name="template" id="template">
+            <!-- Options will be filled by JavaScript -->
+        </select><br>
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title"><br>
+        <label for="subtitle">Subtitle:</label>
+        <input type="text" id="subtitle" name="subtitle"><br>
+        <label for="slides">Slides JSON:</label>
+        <textarea id="slides" name="slides"></textarea><br>
+        <input type="submit" value="Generate PPTX">
+    </form>
+    <script src="form.js"></script>
+</body>
+</html>
+

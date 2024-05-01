@@ -20,26 +20,33 @@ def generate_presentation(slides: str, template_name: str = 'Blank') -> bytes:
     with open(output_file_path, "rb") as f:
         return f.read()
 
+@app.route('/')
+def index():
+    return send_file('index.html')
+
 @app.route('/templates', methods=['GET'])
 def list_templates():
-    templates = GlobalConfig.PPTX_TEMPLATE_FILES
+    config = GlobalConfig()
+    templates = config.PPTX_TEMPLATE_FILES
     return jsonify([{name : template['caption']} for name, template in templates.items()])
     #return GlobalConfig.PPTX_TEMPLATE_FILES
 
 @app.route('/generate_presentation', methods=['POST'])
 def generate_presentation_endpoint():
+    config = GlobalConfig()
     data = request.get_json()  # Use get_json() to parse the incoming JSON payload directly
     
     slides_json = json5.dumps(data)  # Re-encode the data to JSON for internal handling, if necessary
     template_name = data.get('template', 'Blank')  # Default to 'Blank' if no template is provided
+    download_filename = data.get('filename', 'output.pptx')  # Default to 'output.pptx' if no filename is provided
     
     print("-------------------------")
     print("Using template:", template_name)
-    print("Available templates:", GlobalConfig.PPTX_TEMPLATE_FILES)
+    print("Available templates:", config.PPTX_TEMPLATE_FILES)
     
     # Validate the input JSON and the existence of the template
     try:
-        if template_name not in GlobalConfig.PPTX_TEMPLATE_FILES:
+        if template_name not in config.PPTX_TEMPLATE_FILES:
             raise ValueError("Template not found: " + template_name)
     except Exception as e:
         print("ERROR:", str(e))
@@ -59,4 +66,11 @@ def generate_presentation_endpoint():
 
 
 if __name__ == '__main__':
+   
+   # Example usage
+    config = GlobalConfig()
+    templates = config.PPTX_TEMPLATE_FILES
+    print("log level = ", GlobalConfig.LOG_LEVEL)
+    print("templates = ", templates)
+    
     app.run(host='0.0.0.0', port=8501)
