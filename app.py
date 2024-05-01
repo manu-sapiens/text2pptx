@@ -61,7 +61,7 @@ def generate_presentation_endpoint():
         io.BytesIO(generated_file),
         mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
         as_attachment=True,
-        download_name='output.pptx'
+        download_name=download_filename
     )
 
 
