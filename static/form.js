@@ -1,10 +1,11 @@
 window.onload = function() {
     fetch('/templates').then(response => response.json()).then(data => {
+        console.log("templates: ", data)
         let templateSelect = document.getElementById('template');
         data.forEach(template => {
             let option = document.createElement('option');
             option.value = Object.keys(template)[0];
-            option.text = template[Object.keys(template)[0]];
+            option.text = Object.keys(template)[0] + " : " + template[Object.keys(template)[0]];
             templateSelect.appendChild(option);
         });
     });

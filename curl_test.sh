@@ -1,5 +1,1 @@
-curl -X POST \
-  http://localhost:8501/generate_presentation \
-  -H 'Content-Type: application/json' \
-  -d '{"template":"Bespoke", "filename":"test.pptx", "title": "Understanding AI?", "subtitle":"Created by Capital Blueprint", "slides": [{"heading": "Introduction","bullet_points": ["Brief overview of AI", "Importance of understanding AI"]}]}' \
-  -o ./test/output.pptx
+curl -X POST http://localhost:8501/generate_presentation -H 'Content-Type: application/json' -d '{"template":"Urban_monochrome","filename":"dnd.pptx","title":"Dungeons & Dragons: A Billion-Dollar Franchise","subtitle":"Uncovering the Commercial Success of D&D", "slides":[{"heading":"Dungeons & Dragons: A Billion-Dollar Franchise","bullet_points":["Revenue: $822 million (2021)","Market Share: 75% of tabletop RPG market","Community: 50 million+ players worldwide","Partnerships: Netflix, Amazon, Paramount Pictures, and more","Cultural Impact: Featured in The New York Times, Forbes, NPR, and more"]}]}' -o ./test/output.pptx
