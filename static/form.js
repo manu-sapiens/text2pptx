@@ -1,6 +1,6 @@
 window.onload = function() {
     fetch('/templates').then(response => response.json()).then(data => {
-        console.log("templates: ", data)
+        print("templates: ", data)
         let templateSelect = document.getElementById('template');
         data.forEach(template => {
             let option = document.createElement('option');
