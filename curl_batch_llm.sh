@@ -8,7 +8,7 @@ else
 
 
 # Perform the curl operation using the API key from the environment variable
-curl -X POST http://localhost:8501/llm/batch_pptx \
+curl -X POST https://text2pptx.onrender.com/llm/batch_pptx \
 -H "Content-Type: application/json" \
 -d '{
         "ai_type": "openai",
@@ -18,9 +18,10 @@ curl -X POST http://localhost:8501/llm/batch_pptx \
         "api_key": "'"$OPENAI_API_KEY"'",
         "template":"Bespoke",
         "schema":"{type:object,properties:{title:{type:string},subtitle:{type:string},slides:{type:array,items:{type:object,properties:{heading:{title:Heading,description:The_slide_Heading,type:string},bullet_points:{title:Bullet_Points,description:The_bullet_points,type:array,items:{type:string}}},required:[heading,bullet_points]}}},required:[title,slides]}"
-    }' -o ./test/output.zip
+    }' -o ./test/new_output.zip
 fi
 
 # new:      "schema":"{type:object,properties:{title:{type:string},subtitle:{type:string},slides:{type:array,items:{type:object,properties:{heading:{title:Heading,description:The_slide_Heading,type:string},bullet_points:{title:Bullet_Points,description:The_bullet_points,type:array,items:{type:string}}},required:[heading,bullet_points]}}},required:[title,slides]}"
 # gpt4 :    "model": "gpt-4-turbo",
 # curl -X POST https://text2pptx.onrender.com/llm/batch_infer \
+# curl -X POST http://localhost:8501/llm/batch_pptx \
