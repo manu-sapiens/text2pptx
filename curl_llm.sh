@@ -8,14 +8,20 @@ else
 
 
 # Perform the curl operation using the API key from the environment variable
-curl -X POST http://localhost:8501/llm/infer \
+curl -X POST http://localhost:8501/llm/batch_infer \
 -H "Content-Type: application/json" \
 -d '{
         "ai_type": "openai",
-        "model": "gpt-4-turbo",
-        "system_prompt": "Please generate a JSON with the following structure.",
-        "user_prompt": "Generate details for a presentation on the success of Dungeons And Dragons.",
+        "model": "gpt-3.5-turbo",
+        "system_prompt": "You are an expert on tabletop role playing games",
+        "user_prompt": "Generate a presentation on what Dungeons And Dragons is|||Generate a presentation on Dungeons And Dragons Adventurers League and how it contributed to the renewal of interest in the game",
         "api_key": "'"$OPENAI_API_KEY"'",
-        "schema":"{~type~:~object~,~properties~:{~title~:{~type~:~string~},~subtitle~:{~type~:~string~},~slides~:{~type~:~array~,~items~:{~type~:~object~,~properties~:{~heading~:{~type~:~string~,~description~:~the heading of this slide~},~bullet_points~:{~type~:~array~,~items~:{~type~:~string~}}}}}},~required~:[~title~,~slides~]}"
+        "schema":"{type:object,properties:{title:{type:string},subtitle:{type:string},slides:{type:array,items:{type:object,properties:{heading:{title:Heading,description:The_slide_Heading,type:string},bullet_points:{title:Bullet_Points,description:The_bullet_points,type:array,items:{type:string}}},required:[heading,bullet_points]}}},required:[title,slides]}"
     }' -o ./test/output.bin
 fi
+
+# ok:        "schema":"{type:object,properties:{title:{type:string},subtitle:{type:string},slides:{type:array,items:{type:object,properties:{bullet_points:{type:array,items:{type:string}}}}}},required:[title,slides]}"
+
+# bad:        "schema":"{type:object,properties:{title:{type:string},subtitle:{type:string},slides:{type:array,items:{type:object,properties:{heading:{type:string},bullet_points:{type:array,items:{type:string}},required:[heading,bullet_points]}}},required:[title,slides]}}"
+# new:        "schema":"{type:object,properties:{title:{type:string},subtitle:{type:string},slides:{type:array,items:{type:object,properties:{heading:{title:Heading,description:The_slide_Heading,type:string},bullet_points:{title:Bullet_Points,description:The_bullet_points,type:array,items:{type:string}}},required:[heading,bullet_points]}}},required:[title,slides]}"
+# gpt4 : "model": "gpt-4-turbo",
