@@ -15,6 +15,7 @@ import io
 import json
 import replicate
 import re
+import zipfile
 
 separator = '|||'
 
@@ -346,9 +347,11 @@ def handle_post():
     #
 #
 
-@app.route('/llm/batch_infer', methods=['POST'])
-def handle_batch_post():
-    data = request.json
+
+def batch_infer(data):
+    results = []
+    errors = []
+     
     print("BATCH INFER data = ", data)
     
     if data.get('ai_type').lower() == 'openai':
@@ -372,8 +375,6 @@ def handle_batch_post():
     schema_string = None
     if simplified_schema: schema_string = decode_schema_string(simplified_schema)        
     
-    results = []
-    errors = []
     for user_prompt in user_prompts:
         
         result = None
@@ -395,10 +396,69 @@ def handle_batch_post():
             results.append(None)
             errors.append("No result " + separator)
         #               
+    #    
+    
+    return {'results': results, 'errors': errors}
+#
+
+@app.route('/llm/batch_infer', methods=['POST'])
+def handle_batch_post():
+    data = request.json
+    result = batch_infer(data)
+    return jsonify(result)
+#
+
+@app.route('/llm/batch_pptx', methods=['POST'])
+def combined_batch_pptx():
+    data = request.get_json()
+    template_name = data.get('template', 'Blank')
+    filename = data.get('filename', 'pptxs')
+    inference_result = batch_infer(data)
+    inference_results = inference_result.get('results', [])
+    # Container for generated files
+    pptx_files = []
+    file_names = set()
+
+    
+    for result in inference_results:
+        json_data = json.dumps(result)
+        generated_file = generate_presentation(json_data, template_name)
+        sanitized_name = sanitize_filename(result.get('title', 'presentation'))
+        count = 1
+        unique_name = sanitized_name
+        while unique_name in file_names:
+            unique_name = f"{sanitized_name} ({count})"
+            count += 1
+        file_names.add(unique_name)
+
+        # Save the file temporarily
+        print(f"Saving file: {unique_name}.pptx")
+        temp_path = Path(tempfile.mkstemp(suffix=".pptx", prefix=unique_name)[1])
+        with open(temp_path, 'wb') as f:
+            f.write(generated_file)
+        #
+        pptx_files.append(temp_path)
     #
     
-    return jsonify({'results': results, 'errors': errors})
-#
+    # Zip all the files
+    file_count = len(inference_results)
+    print(f"Zipping {file_count} files")
+    
+    zip_path = Path(tempfile.mkstemp(suffix=".zip", prefix=filename)[1])
+    with zipfile.ZipFile(zip_path, 'w') as pptx_zip:
+        for pptx_file in pptx_files:
+            pptx_zip.write(pptx_file, arcname=os.path.basename(pptx_file))
+            os.remove(pptx_file)  # Clean up the file after adding to zip
+        #
+    #
+
+    print("*********** DONE *************")
+    return send_file(zip_path, mimetype='application/zip', as_attachment=True, download_name=filename)
+
+def sanitize_filename(name):
+    """ Sanitize and create a safe filename """
+    return re.sub(r'[^a-zA-Z0-9_\-]', '_', name)
+
 
 if __name__ == '__main__':
     # Example usage
