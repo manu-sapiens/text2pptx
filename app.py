@@ -18,6 +18,7 @@ import re
 import zipfile
 
 separator = '|||'
+OBSCURE_CHARACTER = 'ˆ'
 
 app = Flask(__name__, static_folder='static')
 
@@ -30,12 +31,12 @@ def generate_presentation(slides: str, template_name: str = 'Blank') -> bytes:
         return f.read()
 
 @app.route('/')
-def index():
+def root_endpoint():
     return send_file('templates/index.html')
 
 @app.route('/pptx/templates', methods=['GET'])
 @app.route('/templates', methods=['GET'])
-def list_templates():
+def get_templates_endpoint():
     config = GlobalConfig()
     templates = config.PPTX_TEMPLATE_FILES
     return jsonify([{name: template['caption']} for name, template in templates.items()])
@@ -93,9 +94,10 @@ def generate_presentation_endpoint():
     #
 #
 
-
-
 def call_openai_api(api_key, model, messages, tools=None):
+    
+    result = None
+    error = None
     
     #print("************************")
     #print("api_key = ", api_key)
@@ -145,7 +147,7 @@ def call_openai_api(api_key, model, messages, tools=None):
             response_text = response.text
         except Exception as e:
             print("Error accessing response data: ", e)
-            return jsonify({'error': f"Error accessing response data for response = {response}"}), 500
+            error = f"Error accessing response data for response = {response}"
         #
         
         # campfire rule: leave the ratelimit in a good state
@@ -160,6 +162,7 @@ def call_openai_api(api_key, model, messages, tools=None):
                 print(f"Rate limit exceeded. Waiting for {wait_time / 1000} seconds.")
                 
                 if wait_time > 0: time.sleep(wait_time / 1000)
+            #
         except Exception as e:
             print("Error handling rate limit: ", e)
             time.sleep(2)
@@ -184,8 +187,8 @@ def call_openai_api(api_key, model, messages, tools=None):
             #        
 
         except json.JSONDecodeError as e:
-            logging.error(f"JSON decode error: {e}")
-            return {"error": f"Failed to parse JSON response: {e} , for response_json = {response_json}"}, 500
+            error = f"Failed to parse JSON response: {e} , for response_json = {response_json}"
+            logging.error(error)
         #
         
         if tools:
@@ -193,71 +196,90 @@ def call_openai_api(api_key, model, messages, tools=None):
                 tool_call_data = response_json['choices'][0]['message']['tool_calls'][0]['function']['arguments']
                 #print("tool_call_data = ", tool_call_data)
             except Exception as e:
-                logging.error(f"[tools = true] Error accessing tool call data: {e} for response = {response_json}")
-                return jsonify({'error': 'Error processing OpenAI response'}), 500
+                error = f"Error extracting tool_call_data from OpenAI response {response_json}"
+                logging.error(error)
             #
             
             try:  
-                data = json.loads(tool_call_data)
+                result = json.loads(tool_call_data)
                 #print("data = ", data)
             except Exception as e:
-                logging.error(f"[tools = true] Error accessing tool call data: {e} for response = {response_json}")
-                return jsonify({'error': 'Error processing OpenAI response'}), 500
-            #
-            
-            return data
+                error = f"Error processing loading into json tool_call_data = {tool_call_data}"
+                logging.error(error)
+            #            
         else:
             try:
-                completed_answer = response_json['choices'][0]['message']['content']
+                result = response_json['choices'][0]['message']['content']
                 #print("completed_answer = ", completed_answer)
             except (IndexError, KeyError) as e:
-                logging.error(f"[tools = false] Error processing OpenAI response: {e} for response = {response_json}")
-                return jsonify({'error': 'Error processing OpenAI response'}), 500
+                error =  f"[tools = false] Error processing OpenAI response: {e} for response = {response_json}"
+                logging.error(error)
             #
-            return completed_answer
         #
     else:
-        raise Exception(f"Failed to call API: {response.status_code} - {response.text}")
+        error = f"Failed to call API: {response.status_code} - {response.text}"
+        logging.error(error)
     #
+    
+    return result, error
 #
 
 # we now need to use it both for regular chat completions and for chat completions with tools, and in a batch mode
-def create_openai_chat_with_tool(api_key, model, system_prompt, user_prompt, schema_string):
+def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_schema):
     
-    tool_name = "json_answer"
-    tool_description = "Generate output using the specified schema"
+    result = None
+    error = None
     
-    # Convert JSON schema string to a dictionary
-    try:
-        schema_dictionary = json.loads(schema_string)
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON decode error: {e}")
-        return {"error": f"Failed to parse schema JSON: {e}"}, 400
-    #
-    
-    # Construct the tool with the schema
-    tool = {
-        "type": "function",
-        "function": {
-            "name": tool_name,
-            "description": tool_description,
-            "parameters": schema_dictionary
-        }
-    }
+    if simplified_schema:
+        schema_string = decode_schema_string(simplified_schema)        
+        
+        tool_name = "json_answer"
+        tool_description = "Generate output using the specified schema"
+        
+        # Convert JSON schema string to a dictionary
+        schema_dictionary = None
+        try:
+            schema_dictionary = json.loads(schema_string)
+        except json.JSONDecodeError as e:
+            error = f"Failed to parse schema JSON: {e}"
+        #
 
-    # Construct the messages for the chat
-    messages = [
-        {"role": "system", "content": system_prompt + "\nProduce your output as a JSON"},
-        {"role": "user", "content": user_prompt}
-    ]
-    
-    # Make the API call
-    result = call_openai_api(api_key, model, messages, [tool])
-    return result
+        if schema_dictionary:        
+            # Construct the tool with the schema
+            tool = {
+                "type": "function",
+                "function": {
+                    "name": tool_name,
+                    "description": tool_description,
+                    "parameters": schema_dictionary
+                }
+            }
+
+            # Construct the messages for the chat
+            messages = [
+                {"role": "system", "content": system_prompt + "\nProduce your output as a JSON"},
+                {"role": "user", "content": user_prompt}
+            ]
+        
+            # Make the API call
+            result = call_openai_api(api_key, model, messages, [tool])
+        else:
+            error = "No schema dictionary found"
+        #
+    else:
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+        result = call_openai_api(api_key, model, messages)
+    #
+            
+    return result, error
 #
 
 def detect_missing_openai_inference_parameters(data):
-    required_params = ["model", "system_prompt", "user_prompt", "api_key"]
+    
+    required_params = ["user_prompt", "api_key"]
     missing_params = [param for param in required_params if not data.get(param)]
 
     if missing_params:
@@ -267,87 +289,93 @@ def detect_missing_openai_inference_parameters(data):
 #
 
 def decode_schema_string(schema_string):
-    schema = None
-    # Convert the simplified schema string to a valid JSON schema
-    # schema = schema_str.replace("~", "\"")  # Replace placeholder with actual quotes
+    # Step 1: Replace spaces within backticks with a rare character and remove the backticks
+    schema_string = re.sub(r'`([^`]*)`', lambda match: match.group(1).replace(' ', OBSCURE_CHARACTER), schema_string)
 
-    # Split the string using regex to match sequences of word characters or non-word characters
+    # Step 2: Split the string using regex to match sequences of word characters or non-word characters
     split_list = re.findall(r'\w+|\W+', schema_string)
 
-    # Reconstitute the string, adding quotes around words
+    # Step 3: Reconstitute the string, adding quotes around words
     schema = ''.join(f'"{part}"' if re.match(r'^[a-zA-Z_]\w*$', part) else part for part in split_list)
- 
-    print("schema = ", schema)
+
+    # Step 4: Replace the rare character back with spaces
+    schema = schema.replace(OBSCURE_CHARACTER, ' ')
     return schema
-#
 
-@app.route('/llm/infer', methods=['POST'])
-def handle_post():
-    data = request.json
 
-    if data.get('ai_type').lower() == 'openai':
+def simple_inference(data):
+
+    print("simple_inference data = ", data)
+    
+    result = None
+    error = None
+    
+    ai_type = data.get('ai_type', 'openai')    
+    if ai_type.lower() == 'openai':
         
         missing_parameters = detect_missing_openai_inference_parameters(data)
         if missing_parameters:
-            return missing_parameters
+            error = "missing_parameters = ", missing_parameters
         #
-        
-        system_prompt = data['system_prompt'] 
+
+        # required
         user_prompt = data['user_prompt']
-        model = data['model']
         api_key = data['api_key']
-        schema = data.get('schema')
 
-        print("************************")        
-        print("schema = ", schema)
-        print("model= ", model)
-        print("system_prompt = ", system_prompt)
-        print("user_prompt = ", user_prompt)
-        print("api_key = ", api_key)
-        print("************************")
-              
-        #openai_client = OpenAI(api_key=api_key)
-        
-        if schema:
-            schema = decode_schema_string(schema)            
-            response = create_openai_chat_with_tool(api_key, model, system_prompt, user_prompt, schema)
-            
-            if response:
-                print("-------------------")
-                print("response = ", response)
-                try:
-                    # Assuming the function call arguments contain the data as a JSON string
-                    tool_call_data = response.choices[0].message.tool_calls[0].function.arguments
+        # optional        
+        system_prompt = data.get('system_prompt','You are a useful assistant')
+        model = data.get('model', 'gpt-3.5-turbo')
+        simplified_schema = data.get('schema', None)
 
-                    print("************************")
-                    print("tool_call_data = ", tool_call_data)
-                    print("************************")
-                    # If tool_call_data is a string, convert it to a dictionary
-                    data = json.loads(tool_call_data)
-                    return jsonify(data)
-                except Exception as e:
-                    logging.error(f"Error accessing tool call data: {e}, Full response: {response}")
-                    return jsonify({'error': 'Error processing OpenAI response'}), 500
-            else:
-                return jsonify({'error': 'Failed to get response from OpenAI'}), 500
-            
+        result, error = create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_schema)
+
+        if result:
+            print("result = ", result)
         else:
-            messages = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ]
-                         
-            result = call_openai_api(api_key, model, messages)
-            
-            if result:
-                return jsonify(result), 200
-            else:
-                return jsonify({'error': 'Failed to get response from OpenAI'}), 500
-            #
+            error += "| No result received"
+        #               
+        
+    else:
+        error = f"Unsupported AI type: {data.get('ai_type')}"
+    #
+    
+    print("result = ", result)
+    print("error = ", error)
+    return result, error
+#
+
+
+@app.route('/llm/infer', methods=['POST'])
+def simple_inference_endpoint():
+    print("simple_inference_endpoint")
+    result = None
+    error = None
+    
+    try: 
+        data = request.json
+    except Exception as e:
+        error = f"Error getting JSON data from request {request}. Error = {e}"
+    #
+
+    print ("data = ", data)
+    if data:
+        try:
+            result, error = simple_inference(data)
+        except Exception as e:
+            error = f"Error during inference processing: {e}"
         #
     else:
-        return jsonify({'error': f"Unsupported AI type: {data.get('ai_type')}"}), 400
+        error = f"No data found in request {request}"
     #
+
+    print("result = ", result)
+    print("error = ", error)
+
+    if error:        
+        return jsonify({'error': error}), 500
+    else:
+        return jsonify(result), 200    
+    #    
 #
 
 
@@ -369,10 +397,13 @@ def batch_infer(data):
         return jsonify({'error': f"Unsupported AI type: {data.get('ai_type')}"}), 400
     #
     
-    system_prompt = data.get('system_prompt', '')
+    # required
     user_prompts = data.get('user_prompt', '').split(separator)
     api_key = data.get('api_key')
-    model = data.get('model')
+
+    #optional    
+    system_prompt = data.get('system_prompt', '')
+    model = data.get('model', 'gpt-3.5-turbo')
     simplified_schema = data.get('schema', None)
 
     schema_string = None
@@ -386,7 +417,7 @@ def batch_infer(data):
         result = None
         
         if schema_string:
-            result = create_openai_chat_with_tool(api_key, model, system_prompt, user_prompt, schema_string)
+            result = create_openai_chat(api_key, model, system_prompt, user_prompt, schema_string)
         else:
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -410,14 +441,14 @@ def batch_infer(data):
 #
 
 @app.route('/llm/batch_infer', methods=['POST'])
-def handle_batch_post():
+def batch_inference_endpoint():
     data = request.json
     result = batch_infer(data)
     return jsonify(result)
 #
 
 @app.route('/llm/batch_pptx', methods=['POST'])
-def combined_batch_pptx():
+def batch_pptx_endpoint():
     data = request.get_json()
     template_name = data.get('template', 'Blank')
     filename = data.get('filename', 'pptxs')
@@ -465,7 +496,7 @@ def combined_batch_pptx():
 #
 
 @app.route('/llm/big_pptx', methods=['POST'])
-def big_pptx():
+def big_pptx_endpoint():
 
     data = None
     print("BIG PPTX request")# = ", request)
