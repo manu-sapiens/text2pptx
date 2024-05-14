@@ -97,12 +97,12 @@ def generate_presentation_endpoint():
 
 def call_openai_api(api_key, model, messages, tools=None):
     
-    print("************************")
-    print("api_key = ", api_key)
-    print("model= ", model)    
-    print("messages = ", messages)
-    print("tools = ", tools)
-    print("************************")
+    #print("************************")
+    #print("api_key = ", api_key)
+    #print("model= ", model)    
+    #print("messages = ", messages)
+    #print("tools = ", tools)
+    #print("************************")
     
     url = 'https://api.openai.com/v1/chat/completions'
     headers = {
@@ -150,13 +150,16 @@ def call_openai_api(api_key, model, messages, tools=None):
         
         # campfire rule: leave the ratelimit in a good state
         try:
-            rate_limit_remaining = int(response_headers.get('Openai-Ratelimit-Remaining', 0))
-            if rate_limit_remaining < 1:
-                reset_time = int(response_headers.get('Openai-Ratelimit-Reset', 0))
-                wait_time = reset_time - time.time() if reset_time > time.time() else 0
-                print(f"Rate limit exceeded. Waiting for {wait_time} seconds.")
-                time.sleep(wait_time)
-            #
+            #print("responde_headers = ", response_headers)
+            rate_limit_remaining_requests = int(response_headers.get('x-ratelimit-remaining-requests', 0))
+            print("rate_limit_remaining_requests = ", rate_limit_remaining_requests)
+
+            if rate_limit_remaining_requests < 1:
+                reset_time = int(response_headers.get('x-ratelimit-reset-requests', '0ms')[:-2])
+                wait_time = reset_time - int(time.time() * 1000) if reset_time > int(time.time() * 1000) else 0
+                print(f"Rate limit exceeded. Waiting for {wait_time / 1000} seconds.")
+                
+                if wait_time > 0: time.sleep(wait_time / 1000)
         except Exception as e:
             print("Error handling rate limit: ", e)
             time.sleep(2)
@@ -166,7 +169,7 @@ def call_openai_api(api_key, model, messages, tools=None):
         try:
             response_json = json.loads(response_text)
             
-            if True:
+            if False:
                 print("response_text= ", response_text)
                 print("response_json = ", response_json)
                 print("response_json['choices'] = ", response_json['choices'])
@@ -188,7 +191,7 @@ def call_openai_api(api_key, model, messages, tools=None):
         if tools:
             try:
                 tool_call_data = response_json['choices'][0]['message']['tool_calls'][0]['function']['arguments']
-                print("tool_call_data = ", tool_call_data)
+                #print("tool_call_data = ", tool_call_data)
             except Exception as e:
                 logging.error(f"[tools = true] Error accessing tool call data: {e} for response = {response_json}")
                 return jsonify({'error': 'Error processing OpenAI response'}), 500
@@ -196,7 +199,7 @@ def call_openai_api(api_key, model, messages, tools=None):
             
             try:  
                 data = json.loads(tool_call_data)
-                print("data = ", data)
+                #print("data = ", data)
             except Exception as e:
                 logging.error(f"[tools = true] Error accessing tool call data: {e} for response = {response_json}")
                 return jsonify({'error': 'Error processing OpenAI response'}), 500
@@ -205,8 +208,8 @@ def call_openai_api(api_key, model, messages, tools=None):
             return data
         else:
             try:
-                completed_answer = rresponse_json['choices'][0]['message']['content']
-                print("completed_answer = ", completed_answer)
+                completed_answer = response_json['choices'][0]['message']['content']
+                #print("completed_answer = ", completed_answer)
             except (IndexError, KeyError) as e:
                 logging.error(f"[tools = false] Error processing OpenAI response: {e} for response = {response_json}")
                 return jsonify({'error': 'Error processing OpenAI response'}), 500
@@ -352,7 +355,7 @@ def batch_infer(data):
     results = []
     errors = []
      
-    print("BATCH INFER data = ", data)
+    #print("BATCH INFER data = ", data)
     
     if data.get('ai_type').lower() == 'openai':
         
@@ -375,8 +378,11 @@ def batch_infer(data):
     schema_string = None
     if simplified_schema: schema_string = decode_schema_string(simplified_schema)        
     
+    index = 0
+    total_number = len(user_prompts)
     for user_prompt in user_prompts:
-        
+        index += 1
+        print(f"[{index}/{total_number}] user prompt = ", user_prompt)    
         result = None
         
         if schema_string:
@@ -390,13 +396,15 @@ def batch_infer(data):
         #
          
         if result:
+            print(f"[{index}/{total_number}] - Done")
             results.append(result)
-            errors.append(None)
         else:
-            results.append(None)
+            print(f"[{index+1}/{total_number}] - Error")
             errors.append("No result " + separator)
         #               
+        print("************************")
     #    
+    
     
     return {'results': results, 'errors': errors}
 #
@@ -454,7 +462,74 @@ def combined_batch_pptx():
 
     print("*********** DONE *************")
     return send_file(zip_path, mimetype='application/zip', as_attachment=True, download_name=filename)
+#
 
+@app.route('/llm/big_pptx', methods=['POST'])
+def big_pptx():
+
+    data = None
+    print("BIG PPTX request")# = ", request)
+    try:
+        data = request.get_json()
+    except Exception as e:
+        print("Error getting JSON data: ", e)
+        return jsonify({'error': 'Error getting JSON data'}), 500
+    #
+    #print("data = ", data)
+
+    schema = "{type:object,properties:{slides:{type:array,items:{type:object,properties:{heading:{title:Heading,description:The_slide_Heading,type:string},bullet_points:{title:Bullet_Points,description:The_bullet_points,type:array,items:{type:string}}},required:[heading,bullet_points]}}},required:[slides]}"
+    
+    title = data.get('title', 'Presentation')
+    subtitle = data.get('subtitle', '')
+    filename = data.get('filename', 'default.pptx')    
+    template_name = data.get('template', 'Blank')
+
+    if not data.get('user_prompt'):
+        return jsonify({'error': 'Missing user prompt'}), 400
+    #
+    
+    subdata = {}
+    subdata['ai_type'] = data.get('ai_type', 'openai')
+    subdata['model'] = data.get('model', 'gpt-3.5-turbo')
+    subdata['api_key'] = data.get('api_key', None)
+    subdata['system_prompt'] = data.get('system_prompt', 'You are an helpful assistant')
+    subdata['user_prompt'] = data.get('user_prompt', None)
+    subdata['schema'] = schema
+    
+    #print("subdata = ", subdata)
+    
+    inference_result = batch_infer(subdata)
+    print("inference_result = ", inference_result)
+            
+    inference_results = inference_result.get('results', [])
+    # Container for generated files
+    pptx_files = []
+    file_names = set()
+    
+    all_slides = []
+    for result in inference_results:
+        slides = result.get('slides', [])
+        all_slides.extend(slides)
+    #
+    
+    json_data = json.dumps({'title': title, 'subtitle': subtitle, 'slides': all_slides})
+
+    try:    
+        generated_file = generate_presentation(json_data, template_name)
+    
+        print("*********** DONE *************")
+        return send_file(
+                    io.BytesIO(generated_file),
+                    mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    as_attachment=True,
+                    download_name=filename
+                )
+    except Exception as e:
+        print("ERROR:", str(e))
+        return jsonify({"error": str(e)}), 500
+    #
+#
+        
 def sanitize_filename(name):
     """ Sanitize and create a safe filename """
     return re.sub(r'[^a-zA-Z0-9_\-]', '_', name)
