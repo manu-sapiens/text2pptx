@@ -20,8 +20,8 @@ def main(test_number):
 
     if test_number == 1:
 
-        #url = 'http://localhost:8501/llm/big_pptx'
-        url = 'https://text2pptx.onrender.com/llm/big_pptx'
+        url = 'http://localhost:8501/llm/big_pptx'
+        #url = 'https://text2pptx.onrender.com/llm/big_pptx'
         print("requesting to ", url)
         
         headers = {'Content-Type': 'application/json'}
@@ -96,4 +96,4 @@ def main(test_number):
     #
 
 if __name__ == "__main__":
-    main(1)
+    main(2)

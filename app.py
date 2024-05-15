@@ -231,7 +231,8 @@ def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_sc
     error = None
     
     if simplified_schema:
-        schema_string = decode_schema_string(simplified_schema)        
+        schema_string = decode_schema_string(simplified_schema)  
+        print("schema_string = ", schema_string)      
         
         tool_name = "json_answer"
         tool_description = "Generate output using the specified schema"
@@ -262,7 +263,7 @@ def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_sc
             ]
         
             # Make the API call
-            result = call_openai_api(api_key, model, messages, [tool])
+            result, error = call_openai_api(api_key, model, messages, [tool])
         else:
             error = "No schema dictionary found"
         #
@@ -271,7 +272,7 @@ def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_sc
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ]
-        result = call_openai_api(api_key, model, messages)
+        result, error = call_openai_api(api_key, model, messages)
     #
             
     return result, error
@@ -289,19 +290,70 @@ def detect_missing_openai_inference_parameters(data):
 #
 
 def decode_schema_string(schema_string):
-    # Step 1: Replace spaces within backticks with a rare character and remove the backticks
-    schema_string = re.sub(r'`([^`]*)`', lambda match: match.group(1).replace(' ', OBSCURE_CHARACTER), schema_string)
+    # create a new array to store the parsed schema
+    # go through the string character by character
+    # if the character is a delimiter (either "{" "}" "[" "]" "," ":") then add it to the parsed array as is
+    # if the character is not in that list, take not of the start index and keep going until you find the end index or the next delimiter
+    # once you have the start and end index, extract the string and add it to the parsed array
+    # however, if a fragment is between backticks ("`"), do not look for diminters between the backticks and remove the backticks from the final string
+    
+    # Now go through the parsed array and recreate the new string 'schema'
+    # If the element is a string, add quotes around it and add it to the schema string
+    # If the element is not a string, add it to the schema string as is
+    # return schema
+    
+    parsed = []
+    word = "" # a word is anyting that is between delimiters
+    backtick_word = False
+    
+    delimiters = ['{', '}', '[', ']', ',', ':']
+    
+    length = len(schema_string) 
+    for i in range(length):
+        c = schema_string[i]
+        
+        if c == "`":
+            if backtick_word:
+                # end of a word between backticks. Note that the backticks themselves are discarded
+                parsed.append(word)
+                backtick_word = False
+                word = ""
+            else:
+                if word == "":
+                    # beginning of a word between backticks. Note that the backticks themselves are discarded
+                    backtick_word = True
+                else:
+                    # mid sentence `, so we just add it to the word
+                    word += c
+                #
+            #
+        else:        
+            if c in delimiters and backtick_word == False:
+                # is it a closing delimiter?
+                if word != "":
+                    parsed.append(word)
+                    word = ""
+                #
+                parsed.append(c)
+            else:
+                word += c
+            #
+    #
+    if word != "":
+        parsed.append(word)
+    #
 
-    # Step 2: Split the string using regex to match sequences of word characters or non-word characters
-    split_list = re.findall(r'\w+|\W+', schema_string)
-
-    # Step 3: Reconstitute the string, adding quotes around words
-    schema = ''.join(f'"{part}"' if re.match(r'^[a-zA-Z_]\w*$', part) else part for part in split_list)
-
-    # Step 4: Replace the rare character back with spaces
-    schema = schema.replace(OBSCURE_CHARACTER, ' ')
-    return schema
-
+    schema = ""
+    for p in parsed:
+        if p in delimiters:
+            schema += p
+        else:
+            word = p.strip()
+            if word != "": schema += f'"{word}"'
+        #
+    #
+    return schema    
+#
 
 def simple_inference(data):
 
@@ -406,8 +458,8 @@ def batch_infer(data):
     model = data.get('model', 'gpt-3.5-turbo')
     simplified_schema = data.get('schema', None)
 
-    schema_string = None
-    if simplified_schema: schema_string = decode_schema_string(simplified_schema)        
+    #schema_string = None
+    #if simplified_schema: schema_string = decode_schema_string(simplified_schema)        
     
     index = 0
     total_number = len(user_prompts)
@@ -416,14 +468,14 @@ def batch_infer(data):
         print(f"[{index}/{total_number}] user prompt = ", user_prompt)    
         result = None
         
-        if schema_string:
-            result = create_openai_chat(api_key, model, system_prompt, user_prompt, schema_string)
+        if simplified_schema:
+            result, error = create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_schema)
         else:
             messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            result = call_openai_api(api_key, model, messages)
+            result, error = call_openai_api(api_key, model, messages)
         #
          
         if result:
@@ -437,13 +489,13 @@ def batch_infer(data):
     #    
     
     
-    return {'results': results, 'errors': errors}
+    return results, errors
 #
 
 @app.route('/llm/batch_infer', methods=['POST'])
 def batch_inference_endpoint():
     data = request.json
-    result = batch_infer(data)
+    results, errors = batch_infer(data)
     return jsonify(result)
 #
 
@@ -452,8 +504,7 @@ def batch_pptx_endpoint():
     data = request.get_json()
     template_name = data.get('template', 'Blank')
     filename = data.get('filename', 'pptxs')
-    inference_result = batch_infer(data)
-    inference_results = inference_result.get('results', [])
+    inference_results, errors = batch_infer(data)
     # Container for generated files
     pptx_files = []
     file_names = set()
@@ -529,35 +580,39 @@ def big_pptx_endpoint():
     
     #print("subdata = ", subdata)
     
-    inference_result = batch_infer(subdata)
-    print("inference_result = ", inference_result)
-            
-    inference_results = inference_result.get('results', [])
-    # Container for generated files
-    pptx_files = []
-    file_names = set()
-    
-    all_slides = []
-    for result in inference_results:
-        slides = result.get('slides', [])
-        all_slides.extend(slides)
-    #
-    
-    json_data = json.dumps({'title': title, 'subtitle': subtitle, 'slides': all_slides})
+    inference_results, errors = batch_infer(subdata)
+    if inference_results:
+        print("inference_results = ", inference_results)
+                
+        # Container for generated files
+        pptx_files = []
+        file_names = set()
+        
+        all_slides = []
+        for result in inference_results:
+            print("result = ", result)
+            slides = result.get('slides', [])
+            all_slides.extend(slides)
+        #
+        
+        json_data = json.dumps({'title': title, 'subtitle': subtitle, 'slides': all_slides})
 
-    try:    
-        generated_file = generate_presentation(json_data, template_name)
-    
-        print("*********** DONE *************")
-        return send_file(
-                    io.BytesIO(generated_file),
-                    mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                    as_attachment=True,
-                    download_name=filename
-                )
-    except Exception as e:
-        print("ERROR:", str(e))
-        return jsonify({"error": str(e)}), 500
+        try:    
+            generated_file = generate_presentation(json_data, template_name)
+        
+            print("*********** DONE *************")
+            return send_file(
+                        io.BytesIO(generated_file),
+                        mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                        as_attachment=True,
+                        download_name=filename
+                    )
+        except Exception as e:
+            print("ERROR:", str(e))
+            return jsonify({"error": str(e)}), 500
+        #
+    else:
+        return jsonify({'error': f'No results found, errors = {errors}'}), 500
     #
 #
         
