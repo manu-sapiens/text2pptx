@@ -16,10 +16,11 @@ import json
 import replicate
 import re
 import zipfile
+import subprocess
 
 separator = '|||'
 OBSCURE_CHARACTER = 'ˆ'
-
+MD_TEMPLATE_PATH = "../md_templates/"
 app = Flask(__name__, static_folder='static')
 
 def generate_presentation(slides: str, template_name: str = 'Blank') -> bytes:
@@ -615,11 +616,65 @@ def big_pptx_endpoint():
         return jsonify({'error': f'No results found, errors = {errors}'}), 500
     #
 #
-        
+       
 def sanitize_filename(name):
     """ Sanitize and create a safe filename """
     return re.sub(r'[^a-zA-Z0-9_\-]', '_', name)
 
+@app.route('/pptx/from_md', methods=['POST'])        
+def md_to_pptx_endpoint():
+    config = GlobalConfig()
+    data = request.get_json()
+    
+    
+    # Validate the template existence
+    
+    if 'md' not in data:
+        return jsonify({"error": "Invalid input, expected JSON with 'content' key"}), 400
+
+    md = data.get('md')
+    template_name = MD_TEMPLATE_PATH + data.get('template', 'md_Urban_monochrome.pptx')
+    download_filename = data.get('filename', 'output.pptx')
+    options = data.get('options', {})
+    if "DeleteFirstSlide" not in options: options["DeleteFirstSlide"] = 'yes'
+    
+    # convert options to a string with each option on its own line
+    options_string = "\n".join([f"{key}: {value}" for key, value in options.items()])
+    full_md = f"template: {template_name}\n{options_string}\n{md}"
+    processing_script = Path(Path(__file__).parent,"md2pptx", "md2pptx.py")
+
+    print("-------------------------")
+    print("Using template:", template_name)
+    print("Using options: ", options)
+    print("download_filename = ", download_filename)
+    
+    # Create a temporary directory to store input and output files
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        input_path = Path(tmpdirname) / 'input.md'
+        output_path = Path(tmpdirname) / download_filename
+        
+        # Save the content to the input file
+        with input_path.open('w') as input_file:
+            input_file.write(full_md)
+        
+        # Construct the command to run the script
+        command = ['python', processing_script, str(input_path), str(output_path)]
+        
+        # Run the command
+        result = subprocess.run(command, capture_output=True, text=True)
+        
+        # Check for errors
+        if result.returncode != 0:
+            return jsonify({"error": result.stderr}), 500
+        
+        # Send the output file back as a response
+        if output_path.exists():
+            return send_file(output_path, as_attachment=True)
+        else:
+            return jsonify({"error": "Output file was not created"}), 500
+        #
+    #
+#
 
 if __name__ == '__main__':
     # Example usage
