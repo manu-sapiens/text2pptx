@@ -873,8 +873,8 @@ def md_to_pptx_handling(markdown, template, options, download_filename):
     #
 #
 
-@app.route('/llm/big_dm_slides', methods=['POST'])
-def text_dm_slides_endpoint():
+@app.route('/llm/batch_text_to_dm', methods=['POST'])
+def batch_text_to_dm_endpoint():
 
     data = None
     print("TEXT DM SLIDES")
@@ -886,8 +886,6 @@ def text_dm_slides_endpoint():
         return jsonify({'error': 'Error getting JSON data'}), 500
     #
     if not data.get('user_prompt'): return jsonify({'error': 'Missing user prompt'}), 400
-    title = data.get('title', 'Presentation')
-    subtitle = data.get('subtitle', '')
     download_filename = data.get('filename', 'default.pptx')    
     template = data.get('template', 'md_Urban_monochrome.pptx')
     options = data.get('options', {})
@@ -898,28 +896,23 @@ def text_dm_slides_endpoint():
     system_prompt = data.get('system_prompt', f'You are an helpful assistant creating slides using a json schema.')
     user_prompt = data.get('user_prompt', None)
     markdown_only = data.get('markdown_only', False)
-    result = text_dm_slides_handling(title, subtitle, download_filename, template, options, format, ai_type, model, api_key, system_prompt, user_prompt, markdown_only)
+    result = batch_text_to_dm_handling(ai_type, model, api_key, system_prompt, user_prompt, download_filename)
     return result
 #
 
-def text_dm_slides_handling(title, subtitle, download_filename, template, options, format, ai_type, model, api_key, system_prompt, user_prompt, markdown_only):    
+def batch_text_to_dm_handling(ai_type, model, api_key, system_prompt, user_prompt, download_filename):    
     
     schema = BIG_DM_SLIDES_SCHEMA
     
-
+    data = {}
+    data['ai_type'] = ai_type
+    data['model'] = model
+    data['api_key'] = api_key
+    data['system_prompt'] = system_prompt
+    data['user_prompt'] = user_prompt
+    data['schema'] = schema
     
-    if "DeleteFirstSlide" not in options: options["DeleteFirstSlide"] = 'yes'
-
-    
-    subdata = {}
-    subdata['ai_type'] = ai_type
-    subdata['model'] = model
-    subdata['api_key'] = api_key
-    subdata['system_prompt'] = system_prompt
-    subdata['user_prompt'] = user_prompt
-    subdata['schema'] = schema
-    
-    inference_results, errors = batch_infer(subdata)
+    inference_results, errors = batch_infer(data)
     if not inference_results:
         return jsonify({'error': f'No results found, errors = {errors}'}), 500
     #
@@ -943,41 +936,16 @@ def text_dm_slides_handling(title, subtitle, download_filename, template, option
     
     #convert json to markdown
     markdown = json_to_markdown(all_slides)
-    if markdown_only:
-        
-        temp_path = Path(Path.cwd(), "temp", f"{download_filename}.md")    
-        
-        print("saving to ", temp_path)
-        with temp_path.open('w') as input_file:
-            input_file.write(markdown)
-        #
-        # ensure the file is ready to be sent as a markdown file
-        # set MIME type to markdown
-        return send_file(temp_path)#, as_attachment=True)
+    
+    temp_path = Path(Path.cwd(), "temp", f"{download_filename}.md")    
+    
+    print("saving to ", temp_path)
+    with temp_path.open('w') as input_file:
+        input_file.write(markdown)
     #
-        
-    full_markdown = prepare_markdown(markdown, template, options)
-
-    # if format is .pptx, ensure that filename ends in .pptx if it isn't already
-    #if format == 'pptx' and not download_filename.endswith('.pptx'):
-    #    download_filename += '.pptx'
-    #elif format == 'pdf' and not download_filename.endswith('.pdf'):
-    #    download_filename += '.pdf'
-    ##
-
-    # generate pptx from markdown
-    success, content = convert_markdown(markdown, download_filename)
-    if success == False:
-        return jsonify({"error": content}), 500
-    else:
-        try:
-            print("Received content = ", content)
-            return send_file(content, as_attachment=True)        
-        finally:
-            print("*********** DONE *************")
-            #!!#if content.exists(): content.unlink()
-        #
-    #
+    # ensure the file is ready to be sent as a markdown file
+    # set MIME type to markdown
+    return send_file(temp_path)#, as_attachment=True)
 #
 
 @app.route('/llm/text_to_slides', methods=['POST'])
@@ -1008,7 +976,7 @@ def text_to_slides_endpoint():
     temp_file_id = uuid.uuid4().hex
     temp_file = Path(Path.cwd(), "temp", f"{temp_file_id}.md")
     print("Saving temp to : ", temp_file)
-    result = text_dm_slides_handling(title, subtitle, temp_file_id, template, options, format, ai_type, model, api_key, system_prompt, user_prompt, True)
+    result = batch_text_to_dm_handling(ai_type, model, api_key, system_prompt, user_prompt, temp_file_id)
 
     markdown = ""
     try:
