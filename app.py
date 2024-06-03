@@ -17,81 +17,49 @@ import replicate
 import re
 import zipfile
 import subprocess
+import uuid
+from schemas import BIG_PPTX_SCHEMA, BIG_DM_SLIDES_SCHEMA
+#import aspose.slides
 
 separator = '|||'
 OBSCURE_CHARACTER = 'ˆ'
 MD_TEMPLATE_PATH = "../md_templates/"
 app = Flask(__name__, static_folder='static')
+MD_PROCESSING_SCRIPT = Path(Path(__file__).parent,"md2pptx", "md2pptx.py")
+#BIG_PPTX_SCHEMA = "{type:object,properties:{slides:{type:array,items:{type:object,properties:{heading:{title:Heading,description:The_slide_Heading,type:string},bullet_points:{title:Bullet_Points,description:The_bullet_points,type:array,items:{type:string}}},required:[heading,bullet_points]}}},required:[slides]}"
+#BIG_DM_SLIDES_SCHEMA = "{type: object, properties: {slides: {type: array, items: {oneOf: [{type: object, properties: {introduction: {type: object, properties: {title: {type: string, description: The title text for the Introduction slide}, subtitle: {type: string, description: The optional subtitle text for the Introduction slide}}, required: [title]}}, required: [introduction]}, {type: object, properties: {section: {type: object, properties: {title: {type: string, description: The title text for the Section slide}, subtitle: {type: string, description: The optional subtitle text for the Section slide}}, required: [title]}}, required: [section]}, {type: object, properties: {bulletpoints: {type: object, properties: {elements: {type: array, items: {type: object, properties: {text: {type: string, description: Plain text element for the bullet point}, bullet_level: {type: string, enum: [1, 2, 3, 4, 5, 6], description: The indentation level for bullet points}}, required: [text, bullet_level]}, description: Array of text and bullet elements for the Bulletpoints slide}}, required: [elements]}}, required: [bulletpoints]}]}}}, required: [slides]}"
 
-def generate_presentation(slides: str, template_name: str = 'Blank') -> bytes:
+
+
+def convert_pptx_to_pdf(input_file: str, output_file: str):
+    """
+    Convert a PPTX file to a PDF file.
+
+    :param input_file: Path to the input PPTX file.
+    :param output_file: Path where the output PDF file will be saved.
+    """
+    with slides.Presentation(input_file) as presentation:
+        presentation.save(output_file, slides.export.SaveFormat.PDF)
+    #
+#
+    
+def generate_presentation(slides: str, template_name: str = 'Blank', format: str = 'pptx') -> bytes:
     output_file_path = Path(tempfile.mkstemp(suffix=".pptx")[1])
     generate_powerpoint_presentation(slides, output_file_path=output_file_path, slides_template=template_name)
     print("-------------------------")
     print("Powerpoint generated using template:", template_name)
-    with open(output_file_path, "rb") as f:
-        return f.read()
-
-@app.route('/')
-def root_endpoint():
-    return send_file('templates/index.html')
-
-@app.route('/pptx/templates', methods=['GET'])
-@app.route('/templates', methods=['GET'])
-def get_templates_endpoint():
-    config = GlobalConfig()
-    templates = config.PPTX_TEMPLATE_FILES
-    return jsonify([{name: template['caption']} for name, template in templates.items()])
-
-@app.route('/pptx/generate_presentation', methods=['POST'])
-@app.route('/generate_presentation', methods=['POST'])
-def generate_presentation_endpoint():
-    try:
-        config = GlobalConfig()
-        data = request.get_json()
-        
-        print("data = ", data)
-        
-        template_name = data.get('template', 'Blank')
-        download_filename = data.get('filename', 'output.pptx')
-        
-        print("-------------------------")
-        print("Using template:", template_name)
-        print("Available templates:", config.PPTX_TEMPLATE_FILES)
-        
-        # Validate the template existence
-        if template_name not in config.PPTX_TEMPLATE_FILES:
-            return jsonify({"error": "Template not found: " + template_name}), 400
-        
-        # Exclude the template key from the data passed to generate the presentation
-        if 'template' in data: del data['template']
-        if 'filename' in data: del data['filename']
-
-        try:
-            generated_file = generate_presentation(json5.dumps(data), template_name)
-            return send_file(
-                io.BytesIO(generated_file),
-                mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                as_attachment=True,
-                download_name=download_filename
-            )
-        except Exception as e:
-            print("ERROR:", str(e))
-            return jsonify({"error": str(e)}), 500
-        
-    except Exception as e:
-        return jsonify({'error': f'Error during prediction processing: {str(e)}'}), 500
-    #
     
-    if prediction.status == "succeeded":
-        response = requests.get(prediction.output, stream=True)
-        content_disposition = f"attachment; filename={filename}"
-        return Response(
-            response.iter_content(chunk_size=1024),
-            content_type = content_type,
-            headers = {"Content-Disposition": content_disposition}
-        )
+    if (format == 'pdf'):
+        pdf_output_file = Path(tempfile.mkstemp(suffix=".pdf")[1])
+        print("Generating pdf from powerpoint")
+        convert_pptx_to_pdf(output_file_path, pdf_output_file)
+        with open(pdf_output_file, "rb") as f:
+            return f.read()
+        #
     else:
-        return jsonify({'error': f'Failed to generate resource, status: {prediction.status}'}), 500
+        with open(output_file_path, "rb") as f:
+            return f.read()
+        #
     #
 #
 
@@ -233,7 +201,10 @@ def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_sc
     
     if simplified_schema:
         schema_string = decode_schema_string(simplified_schema)  
-        print("schema_string = ", schema_string)      
+
+        print("------ schema ---------")
+        print(schema_string)
+        print("-----------------------")        
         
         tool_name = "json_answer"
         tool_description = "Generate output using the specified schema"
@@ -241,10 +212,18 @@ def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_sc
         # Convert JSON schema string to a dictionary
         schema_dictionary = None
         try:
+            print("----->")
             schema_dictionary = json.loads(schema_string)
+            print("schema_dictionary = ", schema_dictionary)
+            print("<-----")
         except json.JSONDecodeError as e:
             error = f"Failed to parse schema JSON: {e}"
         #
+
+
+        print("------ schema_dictionary ---------")
+        print(schema_dictionary)
+        print("-----------------------")
 
         if schema_dictionary:        
             # Construct the tool with the schema
@@ -276,6 +255,8 @@ def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_sc
         result, error = call_openai_api(api_key, model, messages)
     #
             
+    print(result)
+    print(error)            
     return result, error
 #
 
@@ -294,7 +275,7 @@ def decode_schema_string(schema_string):
     # create a new array to store the parsed schema
     # go through the string character by character
     # if the character is a delimiter (either "{" "}" "[" "]" "," ":") then add it to the parsed array as is
-    # if the character is not in that list, take not of the start index and keep going until you find the end index or the next delimiter
+    # if the character is not in that list, take note of the start index and keep going until you find the end index or the next delimiter
     # once you have the start and end index, extract the string and add it to the parsed array
     # however, if a fragment is between backticks ("`"), do not look for diminters between the backticks and remove the backticks from the final string
     
@@ -353,6 +334,7 @@ def decode_schema_string(schema_string):
             if word != "": schema += f'"{word}"'
         #
     #
+    
     return schema    
 #
 
@@ -397,6 +379,232 @@ def simple_inference(data):
     return result, error
 #
 
+def sanitize_filename(name):
+    """ Sanitize and create a safe filename """
+    return re.sub(r'[^a-zA-Z0-9_\-]', '_', name)
+
+def json_to_markdown_old(json_data):
+    markdown_lines = []
+
+    for item in json_data:
+        level = item.get("level", 1)
+        # convert level from string to integer
+        level = int(level)
+        title = item.get("title", "")
+        elements = item.get("elements", [])
+
+        # Add the title with appropriate heading level
+        markdown_lines.append("#" * level + " " + title)
+
+        for element in elements:
+            if "text" in element:
+                markdown_lines.append(element["text"])
+            elif "bullet" in element:
+                bullet_level = element.get("bullet_level", 1)
+                # convert bullet_level from string to integer
+                bullet_level = int(bullet_level)
+                markdown_lines.append("  " * (bullet_level - 1) + "* " + element["bullet"])
+
+    return "\n".join(markdown_lines)
+#
+
+def json_to_markdown(json_data):
+    markdown = "\n"
+
+    print("_________________")
+    print("json_data = ", json.dumps(json_data, indent=4))
+    print("_________________")
+    
+    previous_slide_type = ""
+    for slide in json_data:
+        if "introduction" in slide:
+            title = slide["introduction"].get("title", "")
+            
+            # find if there is a "&" character in the title and replace it with †
+            title = title.replace("&", "🫰")
+            subtitle = slide["introduction"].get("subtitle", "")
+            markdown += f"# {title}\n"
+            if subtitle:
+                markdown += f"{subtitle}\n"
+            else:
+                markdown += f"░░░░░░░░░░░░░░░░░░░░░░░░░\n"
+            #
+            previous_slide_type = "introduction"
+        elif "section" in slide:
+            title = slide["section"].get("title", "")
+            title = title.replace("&", "🫰")
+            subtitle = slide["section"].get("subtitle", "")
+            markdown += f"## {title}\n"
+            if subtitle:
+                markdown += f"{subtitle}\n"
+            else:
+                markdown += f"░░░░░░░░░░░░░░░░░░░░░░░░░\n"
+            #
+            previous_slide_type = "section"
+        elif "bullet_slide" in slide:
+            title = slide["bullet_slide"].get("title", "")
+            title = title.replace("&", "🫰")
+            bullets = slide["bullet_slide"].get("bullets", [])
+            markdown += f"### {title}\n"
+            for bullet in bullets:
+                text = bullet.get("text", "")
+                bullet_level = int(bullet.get("bullet_level", "1"))
+                # if bullet_level, prefix with one '*' character for each bullet level
+                prefix = ""
+                for _ in range(bullet_level):
+                    prefix += "*" 
+                #
+                markdown += f"{prefix}{text}\n"
+            #
+            previous_slide_type = "bullet_slide"
+        elif "card" in slide:
+            title = slide["card"].get("title", "")
+            title = title.replace("&", "🫰")
+            if previous_slide_type != "bullet_slide" and previous_slide_type != "card":
+                print("Adding a level 3 (bullet slide) as container for the card")
+                markdown += f"### ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
+            #
+            markdown += f"#### {title}\n"
+            bullets = slide["card"].get("bullets", [])
+            for bullet in bullets:
+                text = bullet.get("text", "")
+                bullet_level = int(bullet.get("bullet_level", "1"))
+                # if bullet_level, prefix with one '*' character for each bullet level
+                prefix = ""
+                for _ in range(bullet_level):
+                    prefix += "*" 
+                #
+                markdown += f"{prefix}{text}\n"
+            #
+            previous_slide_type = "card"
+        #
+        markdown += "\n"  # Add a blank line after each slide for separation
+    #
+    
+    print("------ new mardkown -------")
+    print(markdown)
+    print("---------------------------")
+    return markdown
+#
+
+def convert_markdown(markdown, output_filename):
+    """
+    Converts markdown content to another format using a specified script.
+    
+    :param processing_script: Path to the script that processes the markdown input.
+    :param full_md: The content of the markdown that needs to be converted.
+    :param download_filename: The filename for the output file.
+    :return: Flask response object, either a file download or an error message.
+    """
+    #input_path = Path(tempfile.mkdtemp()) / 'input.md'
+    input_path = Path(Path.cwd(), "temp", "markdown.md")    
+    output_path = Path(Path.cwd(), "temp", f"{output_filename}.pptx")
+    
+    try:
+        # Save the content to the input file
+        with input_path.open('w') as input_file:
+            input_file.write(markdown)
+        #
+        
+        # Construct the command to run the script
+        command = ['python', str(MD_PROCESSING_SCRIPT), str(input_path), str(output_path)]
+        
+        # Run the command
+        result = subprocess.run(command, capture_output=True, text=True)
+        
+        # Check for errors
+        if result.returncode != 0:
+            return False, f"Error: {result.stderr}"
+        
+        # Send the output file back as a response
+        if output_path.exists():
+            return True, output_path
+        else:
+            #delete output_path file if it exists
+            # if output_path.exists(): output_path.unlink()
+            return False, "Output file was not created"
+    finally:
+        # Clean up the temporary input file
+        try:
+            #input_path.unlink()  # deletes the input file
+            #input_path.parent.rmdir()  # deletes the temporary directory
+            
+            # if input_path.exists(): input_path.unlink()
+            # if output_path.exists(): output_path.unlink()
+
+            print("down with markdown convertion")
+            pass
+        
+        except Exception as e:
+            logging.error(f"Failed to clean up temporary files: {e}")
+    #
+#
+
+# --------- APP ROUTES ----------------
+
+@app.route('/')
+def root_endpoint():
+    return send_file('templates/index.html')
+
+@app.route('/pptx/templates', methods=['GET'])
+@app.route('/templates', methods=['GET'])
+def get_templates_endpoint():
+    config = GlobalConfig()
+    templates = config.PPTX_TEMPLATE_FILES
+    return jsonify([{name: template['caption']} for name, template in templates.items()])
+
+@app.route('/pptx/generate_presentation', methods=['POST'])
+@app.route('/generate_presentation', methods=['POST'])
+def generate_presentation_endpoint():
+    try:
+        config = GlobalConfig()
+        data = request.get_json()
+        
+        print("data = ", data)
+        
+        template_name = data.get('template', 'Blank')
+        download_filename = data.get('filename', 'output.pptx')
+        
+        print("-------------------------")
+        print("Using template:", template_name)
+        print("Available templates:", config.PPTX_TEMPLATE_FILES)
+        
+        # Validate the template existence
+        if template_name not in config.PPTX_TEMPLATE_FILES:
+            return jsonify({"error": "Template not found: " + template_name}), 400
+        
+        # Exclude the template key from the data passed to generate the presentation
+        if 'template' in data: del data['template']
+        if 'filename' in data: del data['filename']
+
+        try:
+            generated_file = generate_presentation(json5.dumps(data), template_name)
+            return send_file(
+                io.BytesIO(generated_file),
+                mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                as_attachment=True,
+                download_name=download_filename
+            )
+        except Exception as e:
+            print("ERROR:", str(e))
+            return jsonify({"error": str(e)}), 500
+        
+    except Exception as e:
+        return jsonify({'error': f'Error during prediction processing: {str(e)}'}), 500
+    #
+    
+    if prediction.status == "succeeded":
+        response = requests.get(prediction.output, stream=True)
+        content_disposition = f"attachment; filename={filename}"
+        return Response(
+            response.iter_content(chunk_size=1024),
+            content_type = content_type,
+            headers = {"Content-Disposition": content_disposition}
+        )
+    else:
+        return jsonify({'error': f'Failed to generate resource, status: {prediction.status}'}), 500
+    #
+#
 
 @app.route('/llm/infer', methods=['POST'])
 def simple_inference_endpoint():
@@ -560,8 +768,7 @@ def big_pptx_endpoint():
     #
     #print("data = ", data)
 
-    schema = "{type:object,properties:{slides:{type:array,items:{type:object,properties:{heading:{title:Heading,description:The_slide_Heading,type:string},bullet_points:{title:Bullet_Points,description:The_bullet_points,type:array,items:{type:string}}},required:[heading,bullet_points]}}},required:[slides]}"
-    
+    schema = BIG_PPTX_SCHEMA
     title = data.get('title', 'Presentation')
     subtitle = data.get('subtitle', '')
     filename = data.get('filename', 'default.pptx')    
@@ -617,63 +824,203 @@ def big_pptx_endpoint():
     #
 #
        
-def sanitize_filename(name):
-    """ Sanitize and create a safe filename """
-    return re.sub(r'[^a-zA-Z0-9_\-]', '_', name)
+       
+def prepare_markdown(markdown, template, options):
+    template_name = MD_TEMPLATE_PATH + template
+    if "DeleteFirstSlide" not in options: options["DeleteFirstSlide"] = 'yes'    
+    options_string = "\n".join([f"{key}: {value}" for key, value in options.items()])
+    full_markdown = f"template: {template_name}\n{options_string}\n{markdown}"
 
+    print("+++++++++++++++++++")
+    print("Using template:", template_name)
+    print("Using options: ", options)
+    print("++++ markdown ++++")
+    print(full_markdown)
+    print("+++++++++++++++++++")
+
+    return full_markdown
+#
+    
 @app.route('/pptx/from_md', methods=['POST'])        
 def md_to_pptx_endpoint():
     config = GlobalConfig()
-    data = request.get_json()
-    
-    
-    # Validate the template existence
-    
-    if 'md' not in data:
-        return jsonify({"error": "Invalid input, expected JSON with 'content' key"}), 400
-
-    md = data.get('md')
-    template_name = MD_TEMPLATE_PATH + data.get('template', 'md_Urban_monochrome.pptx')
+    data = request.get_json()    
     download_filename = data.get('filename', 'output.pptx')
-    options = data.get('options', {})
-    if "DeleteFirstSlide" not in options: options["DeleteFirstSlide"] = 'yes'
-    
-    # convert options to a string with each option on its own line
-    options_string = "\n".join([f"{key}: {value}" for key, value in options.items()])
-    full_md = f"template: {template_name}\n{options_string}\n{md}"
-    processing_script = Path(Path(__file__).parent,"md2pptx", "md2pptx.py")
 
-    print("-------------------------")
-    print("Using template:", template_name)
-    print("Using options: ", options)
-    print("download_filename = ", download_filename)
+    if 'markdown' not in data: return jsonify({"error": "Invalid input, expected JSON with 'markdown' key"}), 400
+
+    markdown = data.get('markdown')
+    template = data.get('template', 'md_Urban_monochrome.pptx')
+    options = data.get('options', {})
+    result = md_to_pptx_handling(markdown, template, options, download_filename)
+    return result
+#
     
-    # Create a temporary directory to store input and output files
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        input_path = Path(tmpdirname) / 'input.md'
-        output_path = Path(tmpdirname) / download_filename
-        
-        # Save the content to the input file
-        with input_path.open('w') as input_file:
-            input_file.write(full_md)
-        
-        # Construct the command to run the script
-        command = ['python', processing_script, str(input_path), str(output_path)]
-        
-        # Run the command
-        result = subprocess.run(command, capture_output=True, text=True)
-        
-        # Check for errors
-        if result.returncode != 0:
-            return jsonify({"error": result.stderr}), 500
-        
-        # Send the output file back as a response
-        if output_path.exists():
-            return send_file(output_path, as_attachment=True)
-        else:
-            return jsonify({"error": "Output file was not created"}), 500
+def md_to_pptx_handling(markdown, template, options, download_filename):
+    
+    full_markdown = prepare_markdown(markdown, template, options)
+    
+    success, content = convert_markdown(full_markdown, download_filename)
+    if success == False:
+        return jsonify({"error": content}), 500
+    else:
+        try:
+            return send_file(content, as_attachment=True)
+        finally:
+            print("*********** DONE *************")
+            #!!#if content.exists(): content.unlink()
         #
     #
+#
+
+@app.route('/llm/big_dm_slides', methods=['POST'])
+def text_dm_slides_endpoint():
+
+    data = None
+    print("TEXT DM SLIDES")
+    
+    try:
+        data = request.get_json()
+    except Exception as e:
+        print("Error getting JSON data: ", e)
+        return jsonify({'error': 'Error getting JSON data'}), 500
+    #
+    if not data.get('user_prompt'): return jsonify({'error': 'Missing user prompt'}), 400
+    title = data.get('title', 'Presentation')
+    subtitle = data.get('subtitle', '')
+    download_filename = data.get('filename', 'default.pptx')    
+    template = data.get('template', 'md_Urban_monochrome.pptx')
+    options = data.get('options', {})
+    format = data.get('format', 'pptx')    
+    ai_type = data.get('ai_type', 'openai')
+    model = data.get('model', 'gpt-3.5-turbo')
+    api_key = data.get('api_key', None)
+    system_prompt = data.get('system_prompt', f'You are an helpful assistant creating slides using a json schema.')
+    user_prompt = data.get('user_prompt', None)
+    markdown_only = data.get('markdown_only', False)
+    result = text_dm_slides_handling(title, subtitle, download_filename, template, options, format, ai_type, model, api_key, system_prompt, user_prompt, markdown_only)
+    return result
+#
+
+def text_dm_slides_handling(title, subtitle, download_filename, template, options, format, ai_type, model, api_key, system_prompt, user_prompt, markdown_only):    
+    
+    schema = BIG_DM_SLIDES_SCHEMA
+    
+
+    
+    if "DeleteFirstSlide" not in options: options["DeleteFirstSlide"] = 'yes'
+
+    
+    subdata = {}
+    subdata['ai_type'] = ai_type
+    subdata['model'] = model
+    subdata['api_key'] = api_key
+    subdata['system_prompt'] = system_prompt
+    subdata['user_prompt'] = user_prompt
+    subdata['schema'] = schema
+    
+    inference_results, errors = batch_infer(subdata)
+    if not inference_results:
+        return jsonify({'error': f'No results found, errors = {errors}'}), 500
+    #
+        
+    print("inference_results = ", inference_results)
+            
+    # Container for generated files
+    pptx_files = []
+    file_names = set()
+    
+    all_slides = []
+    for result in inference_results:
+        print("result = ", result)
+        slides = result.get('slides', [])
+        all_slides.extend(slides)
+    #        
+    
+    # Add the title and subtitle to the first slide as "slides": [{"level": 1, "title": "Presentation Title", "elements": [{"text": "Subtitle"}]}]
+    # all_slides.insert(0, {""level": 1, ""title": title, "elements": [{"text": subtitle}]})        
+    #json_data = json.dumps({'slides': all_slides})
+    
+    #convert json to markdown
+    markdown = json_to_markdown(all_slides)
+    if markdown_only:
+        
+        temp_path = Path(Path.cwd(), "temp", f"{download_filename}.md")    
+        
+        print("saving to ", temp_path)
+        with temp_path.open('w') as input_file:
+            input_file.write(markdown)
+        #
+        # ensure the file is ready to be sent as a markdown file
+        # set MIME type to markdown
+        return send_file(temp_path)#, as_attachment=True)
+    #
+        
+    full_markdown = prepare_markdown(markdown, template, options)
+
+    # if format is .pptx, ensure that filename ends in .pptx if it isn't already
+    #if format == 'pptx' and not download_filename.endswith('.pptx'):
+    #    download_filename += '.pptx'
+    #elif format == 'pdf' and not download_filename.endswith('.pdf'):
+    #    download_filename += '.pdf'
+    ##
+
+    # generate pptx from markdown
+    success, content = convert_markdown(markdown, download_filename)
+    if success == False:
+        return jsonify({"error": content}), 500
+    else:
+        try:
+            print("Received content = ", content)
+            return send_file(content, as_attachment=True)        
+        finally:
+            print("*********** DONE *************")
+            #!!#if content.exists(): content.unlink()
+        #
+    #
+#
+
+@app.route('/llm/text_to_slides', methods=['POST'])
+def text_to_slides_endpoint():
+
+    data = None
+    print("TEXT to SLIDES")
+    
+    try:
+        data = request.get_json()
+    except Exception as e:
+        print("Error getting JSON data: ", e)
+        return jsonify({'error': 'Error getting JSON data'}), 500
+    #
+    if not data.get('user_prompt'): return jsonify({'error': 'Missing user prompt'}), 400
+    title = data.get('title', 'Presentation')
+    subtitle = data.get('subtitle', '')
+    download_filename = data.get('filename', 'default.pptx')    
+    template = data.get('template', 'md_Urban_monochrome.pptx')
+    options = data.get('options', {})
+    format = data.get('format', 'pptx')    
+    ai_type = data.get('ai_type', 'openai')
+    model = data.get('model', 'gpt-3.5-turbo')
+    api_key = data.get('api_key', None)
+    system_prompt = data.get('system_prompt', f'You are an helpful assistant creating slides using a json schema.')
+    user_prompt = data.get('user_prompt', None)
+    
+    temp_file_id = uuid.uuid4().hex
+    temp_file = Path(Path.cwd(), "temp", f"{temp_file_id}.md")
+    print("Saving temp to : ", temp_file)
+    result = text_dm_slides_handling(title, subtitle, temp_file_id, template, options, format, ai_type, model, api_key, system_prompt, user_prompt, True)
+
+    markdown = ""
+    try:
+        with open(temp_file, 'r') as f:
+            markdown = f.read()
+    except FileNotFoundError:
+        print(f"File {output_path} not found")
+        exit(1)
+    #
+    
+    result = md_to_pptx_handling(markdown, template, options, download_filename)
+    return result
 #
 
 if __name__ == '__main__':
