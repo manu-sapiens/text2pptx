@@ -93,11 +93,18 @@ def generate_powerpoint_presentation(
 
     # Add contents in a loop
     for a_slide in parsed_data['slides']:
-        bullet_slide_layout = presentation.slide_layouts[1]
+        if "type" in a_slide and a_slide["type"] == "sectionheader":
+            bullet_slide_layout = presentation.slide_layouts[2]
+        else:
+            bullet_slide_layout = presentation.slide_layouts[1]
+        #
+        
         slide = presentation.slides.add_slide(bullet_slide_layout)
         shapes = slide.shapes
 
         title_shape = shapes.title
+            
+            
         body_shape = shapes.placeholders[1]
         title_shape.text = remove_slide_number_from_heading(a_slide['heading'])
         all_headers.append(title_shape.text)
