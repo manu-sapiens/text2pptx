@@ -9,7 +9,7 @@ import time
 import requests
 from pathlib import Path
 import tempfile
-from pptx_helper import generate_powerpoint_presentation
+from pptx_helper import generate_powerpoint_presentation, generate_powerpoint_presentation_advanced
 from global_config import GlobalConfig
 import io
 import json
@@ -18,7 +18,8 @@ import re
 import zipfile
 import subprocess
 import uuid
-from schemas import BIG_PPTX_SCHEMA, BIG_DM_SLIDES_SCHEMA
+from schemas import BIG_PPTX_SCHEMA, BIG_DM_SLIDES_SCHEMA, GPT_TOOL_SLIDE_SCHEMA
+
 #import aspose.slides
 
 separator = '|||'
@@ -553,6 +554,7 @@ def get_templates_endpoint():
     templates = config.PPTX_TEMPLATE_FILES
     return jsonify([{name: template['caption']} for name, template in templates.items()])
 
+
 @app.route('/pptx/generate_presentation', methods=['POST'])
 @app.route('/generate_presentation', methods=['POST'])
 def generate_presentation_endpoint():
@@ -581,6 +583,57 @@ def generate_presentation_endpoint():
             generated_file = generate_presentation(json5.dumps(data), template_name)
             return send_file(
                 io.BytesIO(generated_file),
+                mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                as_attachment=True,
+                download_name=download_filename
+            )
+        except Exception as e:
+            print("ERROR:", str(e))
+            return jsonify({"error": str(e)}), 500
+        
+    except Exception as e:
+        return jsonify({'error': f'Error during prediction processing: {str(e)}'}), 500
+    #
+    
+    if prediction.status == "succeeded":
+        response = requests.get(prediction.output, stream=True)
+        content_disposition = f"attachment; filename={filename}"
+        return Response(
+            response.iter_content(chunk_size=1024),
+            content_type = content_type,
+            headers = {"Content-Disposition": content_disposition}
+        )
+    else:
+        return jsonify({'error': f'Failed to generate resource, status: {prediction.status}'}), 500
+    #
+#
+
+@app.route('/pptx/generate_presentation_advanced', methods=['POST'])
+def generate_presentation_advanced_endpoint():
+    try:
+        config = GlobalConfig()
+        data = request.get_json()
+        
+        template_name = data.get('template', 'Blank')
+        download_filename = data.get('filename', 'output.pptx')
+        
+        print("-------------------------")
+        print("Using template:", template_name)
+        print("Available templates:", config.PPTX_TEMPLATE_FILES)
+        
+        # Validate the template existence
+        if template_name not in config.PPTX_TEMPLATE_FILES:
+            return jsonify({"error": "Template not found: " + template_name}), 400
+        
+        # Exclude the template key from the data passed to generate the presentation
+        if 'template' in data: del data['template']
+        if 'filename' in data: del data['filename']
+
+        try:
+            result_file_name = Path("temp", f"{uuid.uuid4().hex}.pptx")
+            generated_file = generate_powerpoint_presentation_advanced(json5.dumps(data), template_name, result_file_name)
+            return send_file(
+                result_file_name,
                 mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
                 as_attachment=True,
                 download_name=download_filename

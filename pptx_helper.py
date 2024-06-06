@@ -6,9 +6,8 @@ from typing import List, Tuple
 
 import json5
 import pptx
-
+from pptx import Presentation
 from global_config import GlobalConfig
-
 
 PATTERN = re.compile(r"^slide[ ]+\d+:", re.IGNORECASE)
 SAMPLE_JSON_FOR_PPTX = '''
@@ -62,8 +61,12 @@ def generate_powerpoint_presentation(
     :return A list of presentation title and slides headers
     """
 
+
+
     # The structured "JSON" might contain trailing commas, so using json5
     parsed_data = json5.loads(structured_data)
+    
+    print("parsed_data = ", parsed_data)
     config = GlobalConfig()
     
     logging.debug(
@@ -92,7 +95,15 @@ def generate_powerpoint_presentation(
     # title.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 128)  # Navy blue
 
     # Add contents in a loop
-    for a_slide in parsed_data['slides']:
+    slides_string = None
+    if 'slides' not in parsed_data: slides_string = parsed_data['slides']
+    print("slides_string = ", slides_string)
+    print("slides_string type  = ", type(slides_string))
+    slides = json.loads(slides_string)
+    print("slides = ", slides)
+    print("len of slides = ", len(slides))
+    
+    for a_slide in slides:
         if "type" in a_slide and a_slide["type"] == "sectionheader":
             bullet_slide_layout = presentation.slide_layouts[2]
         else:
@@ -110,26 +121,195 @@ def generate_powerpoint_presentation(
         all_headers.append(title_shape.text)
         text_frame = body_shape.text_frame
 
-        # The bullet_points may contain a nested hierarchy of JSON arrays
-        # In some scenarios, it may contain objects (dictionaries) because the LLM generated so
-        #  ^ The second scenario is not covered
+        if "bullet_points" in a_slide:
+            # The bullet_points may contain a nested hierarchy of JSON arrays
+            # In some scenarios, it may contain objects (dictionaries) because the LLM generated so
+            #  ^ The second scenario is not covered
 
-        flat_items_list = get_flat_list_of_contents(a_slide['bullet_points'], level=0)
+            flat_items_list = get_flat_list_of_contents(a_slide['bullet_points'], level=0)
 
-        for an_item in flat_items_list:
+            for an_item in flat_items_list:
+                paragraph = text_frame.add_paragraph()
+                paragraph.text = an_item[0]
+                paragraph.level = an_item[1]
+            #
+        else:
+            # create a blank bullet point
             paragraph = text_frame.add_paragraph()
-            paragraph.text = an_item[0]
-            paragraph.level = an_item[1]
+            paragraph.text = ""
+            paragraph.level = 0
+        #
+    #
 
     # The thank-you slide
-    last_slide_layout = presentation.slide_layouts[0]
-    slide = presentation.slides.add_slide(last_slide_layout)
-    title = slide.shapes.title
-    title.text = 'Thank you!'
+    #last_slide_layout = presentation.slide_layouts[0]
+    #slide = presentation.slides.add_slide(last_slide_layout)
+    #title = slide.shapes.title
+    #title.text = 'Thank you!'
 
     presentation.save(output_file_path)
 
     return all_headers
+#
+
+def generate_powerpoint_presentation_advanced(
+        structured_data: str,
+        slides_template: str,
+        output_file_path: pathlib.Path
+) -> List:
+    """
+    Create and save a PowerPoint presentation file containing the content in JSON format.
+
+    :param structured_data: The presentation contents as "JSON" (may contain trailing commas)
+    :param slides_template: The PPTX template to use
+    :param output_file_path: The path of the PPTX file to save as
+    :return A list of presentation title and slides headers
+    """
+
+    # The structured "JSON" might contain trailing commas, so using json5
+    parsed_data = None
+    try:
+        parsed_data = json5.loads(structured_data)
+    except Exception as e:
+        print("Error parsing JSON5 data: ", e)
+        print("structured_data = ", structured_data)
+        return []
+    #
+    print("--------")
+    print("parsed_data = ", parsed_data)
+    print("--------")
+    
+    data_slides = []
+    data_title = ""
+    data_subtitle = ""
+    if 'slides' in parsed_data: 
+        data_slides = parsed_data['slides'] 
+    else: 
+        print(f"[ERROR] No slides in parsed_data: f{parsed_data}")
+    #
+    
+    if 'title' in parsed_data: data_title = parsed_data['title']
+    if 'subtitle' in parsed_data: data_subtitle = parsed_data['subtitle']
+    
+    print("==============")
+    print("data_slides = ", data_slides)
+    print("==============")
+    print(f"data_title = {data_title}, data_subtitle = {data_subtitle}")
+    print("==============")
+      
+    slides = json5.loads(data_slides)  
+    config = GlobalConfig()
+    
+    logging.debug(
+        "*** Using PPTX template: %s",
+        config.PPTX_TEMPLATE_FILES[slides_template]['file']
+    )
+    presentation = Presentation(config.PPTX_TEMPLATE_FILES[slides_template]['file'])
+
+    # The title slide
+    pptx_slide = None
+    if len(presentation.slides) > 0:
+        # sometimes, the template contains a title slide, so we use it instead of creating an extra one
+        pptx_slide = presentation.slides[0]
+    else:        
+        title_slide_layout = presentation.slide_layouts[0]
+        pptx_slide = presentation.slides.add_slide(title_slide_layout)
+    #
+    
+    pptx_title = pptx_slide.shapes.title
+    pptx_title.text = data_title
+    pptx_subtitle = pptx_slide.placeholders[1]
+    pptx_subtitle.text = data_subtitle
+
+    all_headers = [pptx_title.text, ]
+    print("all_headers = ", all_headers)
+
+    # Add contents in a loop   
+    lettered = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+    for a_slide in slides:
+        numbered_indexes = [0,0,0,0,0]
+        lettered_indexes = [0,0,0,0,0]
+        print("------------------")
+        print(f"slide = {a_slide}")
+        
+        heading = ""
+        bullet_points = []
+        section_type = ""
+        is_section_header = False
+        
+        if "heading" in a_slide: heading = a_slide['heading']
+        if "bullet_points" in a_slide: bullet_points = a_slide['bullet_points']
+        if "type" in a_slide: section_type = a_slide['type']
+        
+        if section_type == "sectionheader": 
+            is_section_header = True
+            print("This is a section header")
+            bullet_slide_layout = presentation.slide_layouts[2]
+        else:
+            bullet_slide_layout = presentation.slide_layouts[1]
+        #
+        
+        current_slide = presentation.slides.add_slide(bullet_slide_layout)
+        current_shapes = current_slide.shapes
+        title_shape = current_shapes.title            
+        body_shape = current_shapes.placeholders[1]
+        title_shape.text = remove_slide_number_from_heading(heading)
+        all_headers.append(title_shape.text)
+        text_frame = body_shape.text_frame
+
+        if is_section_header == False and len(bullet_points) > 0:
+            
+            
+            # The bullet_points is a flat array with indentation level explicitly set
+            # We create bullets, numbers and letters 'bullets' manually
+            previous_numbered_level = -1
+            previous_lettered_level = -1
+            
+            for an_item in bullet_points:
+                
+                bullet_type = "none"
+                bullet_level = 0
+                bullet_text = ""
+                
+                if "bullet_type" in an_item: bullet_type = an_item["bullet_type"]    
+                if "bullet_level" in an_item: bullet_level = int(an_item["bullet_level"])
+                if "bullet_text" in an_item: bullet_text = an_item["bullet_text"]
+                
+                indentation = bullet_level
+                if bullet_type == "bullet":
+                    bullet_text = "• " + bullet_text
+                elif bullet_type == "number":
+                    if previous_numbered_level < bullet_level: numbered_indexes[bullet_level] = 0
+                    bullet_text = f"{numbered_indexes[bullet_level] + 1}. " + bullet_text
+                    previous_numbered_level = bullet_level
+                    numbered_indexes[bullet_level] += 1
+                    #indentation += 2
+                elif bullet_type == "letter":
+                    if previous_lettered_level < bullet_level: lettered_indexes[bullet_level] = 0
+                    bullet_text = f"{lettered[lettered_indexes[bullet_level]]}. " + bullet_text
+                    lettered_indexes[bullet_level] += 1
+                    previous_lettered_level = bullet_level
+                    #indentation += 3
+                #        
+                
+                print(f"bullet_type = {bullet_type}, bullet_level = {bullet_level}, bullet_text = {bullet_text}, indentation = {indentation}")           
+                paragraph = text_frame.add_paragraph()
+                paragraph.text = bullet_text
+                paragraph.level = indentation
+            #
+        else:
+            # create a blank bullet point
+            paragraph = text_frame.add_paragraph()
+            paragraph.text = ""
+            paragraph.level = 0
+        #
+    #
+
+    presentation.save(output_file_path)
+
+    return all_headers
+#
+
 
 
 def get_flat_list_of_contents(items: list, level: int) -> List[Tuple]:
