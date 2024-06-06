@@ -61,12 +61,8 @@ def generate_powerpoint_presentation(
     :return A list of presentation title and slides headers
     """
 
-
-
     # The structured "JSON" might contain trailing commas, so using json5
     parsed_data = json5.loads(structured_data)
-    
-    print("parsed_data = ", parsed_data)
     config = GlobalConfig()
     
     logging.debug(
@@ -94,16 +90,8 @@ def generate_powerpoint_presentation(
     # background.fill.fore_color.rgb = RGBColor.from_string('C0C0C0')  # Silver
     # title.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 128)  # Navy blue
 
-    # Add contents in a loop
-    slides_string = None
-    if 'slides' not in parsed_data: slides_string = parsed_data['slides']
-    print("slides_string = ", slides_string)
-    print("slides_string type  = ", type(slides_string))
-    slides = json.loads(slides_string)
-    print("slides = ", slides)
-    print("len of slides = ", len(slides))
-    
-    for a_slide in slides:
+    # Add contents in a loop    
+    for a_slide in parsed_data['slides']:
         if "type" in a_slide and a_slide["type"] == "sectionheader":
             bullet_slide_layout = presentation.slide_layouts[2]
         else:
@@ -121,25 +109,16 @@ def generate_powerpoint_presentation(
         all_headers.append(title_shape.text)
         text_frame = body_shape.text_frame
 
-        if "bullet_points" in a_slide:
-            # The bullet_points may contain a nested hierarchy of JSON arrays
-            # In some scenarios, it may contain objects (dictionaries) because the LLM generated so
-            #  ^ The second scenario is not covered
+        # The bullet_points may contain a nested hierarchy of JSON arrays
+        # In some scenarios, it may contain objects (dictionaries) because the LLM generated so
+        #  ^ The second scenario is not covered
 
-            flat_items_list = get_flat_list_of_contents(a_slide['bullet_points'], level=0)
+        flat_items_list = get_flat_list_of_contents(a_slide['bullet_points'], level=0)
 
-            for an_item in flat_items_list:
-                paragraph = text_frame.add_paragraph()
-                paragraph.text = an_item[0]
-                paragraph.level = an_item[1]
-            #
-        else:
-            # create a blank bullet point
+        for an_item in flat_items_list:
             paragraph = text_frame.add_paragraph()
-            paragraph.text = ""
-            paragraph.level = 0
-        #
-    #
+            paragraph.text = an_item[0]
+            paragraph.level = an_item[1]
 
     # The thank-you slide
     #last_slide_layout = presentation.slide_layouts[0]

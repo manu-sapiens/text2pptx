@@ -4,7 +4,7 @@ import json, sys
 from schemas import GPT_TOOL_SLIDE_SCHEMA
 import uuid
 
-def gen_pptx(output_path, template = "Entrevue_template_advanced"):
+def gen_pptx(output_path, template = "Entrevue_template_advanced", URL = "pptx/generate_presentation_advanced"):
     json_response = ""
     try:
         with open(output_path, 'r') as f:
@@ -29,7 +29,7 @@ def gen_pptx(output_path, template = "Entrevue_template_advanced"):
     }
     
     
-    url = f'http://localhost:{PORT}/pptx/generate_presentation_advanced'
+    url = f'http://localhost:{PORT}/{URL}'
     print("requesting to ", url)
 
     headers = {'Content-Type': 'application/json'}
@@ -352,7 +352,11 @@ def main(test_number):
     if test_number == 7:
         output_path = f'./test/manu_test.json'
         gen_pptx(output_path)
-              
+
+    if test_number == 8:
+        output_path = f'./test/manu_test.json'
+        gen_pptx(output_path,"Entrevue_template" ,"pptx/generate_presentation")
+                      
 if __name__ == "__main__":
     # read the test number as the first passed argument
     test_number = 1
