@@ -257,7 +257,7 @@ def generate_powerpoint_presentation_advanced(
         all_headers.append(title_shape.text)
         text_frame = body_shape.text_frame
 
-        if is_section_header == False and len(bullet_points) > 0:
+        if len(bullet_points) > 0:
             
             
             # The bullet_points is a flat array with indentation level explicitly set
