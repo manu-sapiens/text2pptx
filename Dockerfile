@@ -1,5 +1,5 @@
 # Use an official Python image as the base
-FROM python:3.11-slim
+FROM python:3.9-slim
 
 # Set the working directory in the container to /app
 WORKDIR /app
@@ -20,4 +20,4 @@ ENV NAME=Predictor
 
 # Run predict.py when the container launches
 #CMD ["python", "predict.py"]
-ENTRYPOINT ["python", "predict.py"]
+ENTRYPOINT ["python", "app.py"]

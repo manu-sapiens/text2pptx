@@ -9,5 +9,5 @@ services:
       - .:/app
     environment:
       - NAME=Predictor
-    entrypoint: ["python", "predict.py"]
+    entrypoint: ["python", "app.py"]
 
