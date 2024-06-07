@@ -6,7 +6,6 @@ from typing import List, Tuple
 
 import json5
 import pptx
-from pptx import Presentation
 from global_config import GlobalConfig
 
 PATTERN = re.compile(r"^slide[ ]+\d+:", re.IGNORECASE)
@@ -72,26 +71,55 @@ def generate_powerpoint_presentation(
     presentation = pptx.Presentation(config.PPTX_TEMPLATE_FILES[slides_template]['file'])
 
     # The title slide
+    if len(presentation.slides) > 0:
+        for i in range(len(presentation.slides)-1, -1, -1): 
+            rId = presentation.slides._sldIdLst[i].rId
+            presentation.part.drop_rel(rId)
+            del presentation.slides._sldIdLst[i]
+        #
+    #
     title_slide_layout = presentation.slide_layouts[0]
     slide = presentation.slides.add_slide(title_slide_layout)
     title = slide.shapes.title
     subtitle = slide.placeholders[1]
     title.text = parsed_data['title']
+    logging.debug('Presentation title is: %s', title.text)
     if 'subtitle' in parsed_data:
         subtitle.text = parsed_data['subtitle']
         logging.debug('Presentation subtitle is: %s', subtitle.text)
     else:
         subtitle.text = ''
-    logging.debug('Presentation title is: %s', title.text)
+    #
     all_headers = [title.text, ]
 
     # background = slide.background
     # background.fill.solid()
     # background.fill.fore_color.rgb = RGBColor.from_string('C0C0C0')  # Silver
     # title.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 128)  # Navy blue
-
+    slides_parsed_data = None
+    if 'slides' in parsed_data: slides_parsed_data = parsed_data['slides']
+    if slides_parsed_data is None:
+        error_message = 'No slides found in the parsed data'
+        logging.error('error_message')
+        print(error_message)
+        return []
+    #
+    print("**************")
+    print("slides_parsed_data=",slides_parsed_data)
+    print("slides_parsed_data type=",type(slides_parsed_data))
+    print("slides_parsed_data len=", len(slides_parsed_data))
+    # if slides_parsed_data is of type string, convert it to a json dictionary
+    if type(slides_parsed_data) == str:
+        slides_parsed_data = json5.loads(slides_parsed_data)
+        print("AFTER CORRECTION:")
+        print("slides_parsed_data type=",type(slides_parsed_data))
+        print("slides_parsed_data len=", len(slides_parsed_data))    
+    #
+         
     # Add contents in a loop    
-    for a_slide in parsed_data['slides']:
+    for a_slide in slides_parsed_data:
+        print("------------------")
+        print("a_slide=",a_slide)
         if "type" in a_slide and a_slide["type"] == "sectionheader":
             bullet_slide_layout = presentation.slide_layouts[2]
         else:
@@ -183,18 +211,19 @@ def generate_powerpoint_presentation_advanced(
         "*** Using PPTX template: %s",
         config.PPTX_TEMPLATE_FILES[slides_template]['file']
     )
-    presentation = Presentation(config.PPTX_TEMPLATE_FILES[slides_template]['file'])
+    presentation = pptx.Presentation(config.PPTX_TEMPLATE_FILES[slides_template]['file'])
 
     # The title slide
     pptx_slide = None
     if len(presentation.slides) > 0:
-        # sometimes, the template contains a title slide, so we use it instead of creating an extra one
-        pptx_slide = presentation.slides[0]
-    else:        
-        title_slide_layout = presentation.slide_layouts[0]
-        pptx_slide = presentation.slides.add_slide(title_slide_layout)
+        for i in range(len(presentation.slides)-1, -1, -1): 
+            rId = presentation.slides._sldIdLst[i].rId
+            presentation.part.drop_rel(rId)
+            del presentation.slides._sldIdLst[i]
+        #
     #
-    
+    title_slide_layout = presentation.slide_layouts[0]
+    pptx_slide = presentation.slides.add_slide(title_slide_layout)
     pptx_title = pptx_slide.shapes.title
     pptx_title.text = data_title
     pptx_subtitle = pptx_slide.placeholders[1]

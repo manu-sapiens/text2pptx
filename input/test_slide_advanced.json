@@ -1,0 +1,215 @@
+{
+  "slides": [
+    {
+      "bullet_points": [
+        {
+          "bullet_level": "0",
+          "bullet_text": "A popular tabletop role-playing game",
+          "bullet_type": "none"
+        },
+        {
+          "bullet_level": "0",
+          "bullet_text": "Involves creating characters and embarking on adventures in a fantasy world",
+          "bullet_type": "none"
+        }
+      ],
+      "heading": "What is Dungeons and Dragons?"
+    },
+    {
+      "heading": "Section 1",
+      "type":"sectionheader",
+      "bullet_points": [
+        {
+          "bullet_level": "0",
+          "bullet_text": "A popular tabletop role-playing game",
+          "bullet_type": "none"
+        },
+        {
+          "bullet_level": "0",
+          "bullet_text": "Involves creating characters and embarking on adventures in a fantasy world",
+          "bullet_type": "none"
+        }
+      ]
+    },
+    {
+      "heading": "Bullets",
+      "bullet_points": [
+        {
+          "bullet_level": "0",
+          "bullet_text": "Players create characters with unique abilities and skills",
+          "bullet_type": "bullet"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Roll dice to determine outcomes of actions",
+          "bullet_type": "bullet"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "bullet"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "bullet"
+        }  
+      ]  
+    },
+    {
+      "heading": "Mix bullet types",
+      "bullet_points": [
+        {
+          "bullet_level": "0",
+          "bullet_text": "Players create characters with unique abilities and skills",
+          "bullet_type": "bullet"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Roll dice to determine outcomes of actions",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "2",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "2",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        },  
+        {
+          "bullet_level": "0",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "bullet"
+        }
+      ]  
+    },    
+    {
+      "bullet_points": [
+        {
+          "bullet_level": "0",
+          "bullet_text": "Players create characters with unique abilities and skills",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Roll dice to determine outcomes of actions",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "0",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "number"
+        }
+      ],
+      "heading": "How to Play Dungeons and Dragons"
+    },
+    {
+      "bullet_points": [
+        {
+          "bullet_level": "0",
+          "bullet_text": "Players create characters with unique abilities and skills",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Roll dice to determine outcomes of actions",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "0",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        },
+        {
+          "bullet_level": "1",
+          "bullet_text": "Follow a story guided by a Dungeon Master (DM)",
+          "bullet_type": "letter"
+        }
+      ],
+      "heading": "What is a Dungeon Master (DM)?"
+    },
+    {
+      "bullet_points": [
+        {
+          "bullet_level": "0",
+          "bullet_text": "Rise of online platforms for virtual play",
+          "bullet_type": "none"
+        },
+        {
+          "bullet_level": "0",
+          "bullet_text": "Increased promotion by popular streamers and media influencers",
+          "bullet_type": "none"
+        },
+        {
+          "bullet_level": "0",
+          "bullet_text": "Nostalgia for classic tabletop gaming among new and old players",
+          "bullet_type": "none"
+        }
+      ],
+      "heading": "Why Dungeons and Dragons is Popular Again"
+    }
+  ]
+}

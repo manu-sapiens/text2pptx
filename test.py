@@ -4,7 +4,7 @@ import json, sys
 from schemas import GPT_TOOL_SLIDE_SCHEMA
 import uuid
 
-def gen_pptx(output_path, template = "Entrevue_template_advanced", URL = "pptx/generate_presentation_advanced"):
+def gen_pptx(output_path, title, subtitle, template = "Entrevue_template_advanced", url = "pptx/generate_presentation_advanced"):
     json_response = ""
     try:
         with open(output_path, 'r') as f:
@@ -24,12 +24,12 @@ def gen_pptx(output_path, template = "Entrevue_template_advanced", URL = "pptx/g
         "filename": result_file_name,
         "slides": slides,
         "template": template,
-        "title": "Dungeons And Dragons",
-        "subtitle": "A presentation on the popular tabletop role-playing game"
+        "title": title,
+        "subtitle": subtitle
     }
     
     
-    url = f'http://localhost:{PORT}/{URL}'
+    url = f'http://localhost:{PORT}/{url}'
     print("requesting to ", url)
 
     headers = {'Content-Type': 'application/json'}
@@ -350,12 +350,12 @@ def main(test_number):
     #
 
     if test_number == 7:
-        output_path = f'./test/manu_test.json'
-        gen_pptx(output_path)
+        json_path = f'./input/test_slide_advanced.json'
+        gen_pptx(json_path, "D&D", "A case study")
 
     if test_number == 8:
-        output_path = f'./test/manu_test.json'
-        gen_pptx(output_path,"Entrevue_template" ,"pptx/generate_presentation")
+        json_path = f'./input/test_slide_simple.json'
+        gen_pptx(json_path,"Presentation Title", "Presentation Subtitle", "Entrevue_template" ,"pptx/generate_presentation")
                       
 if __name__ == "__main__":
     # read the test number as the first passed argument
