@@ -3,6 +3,7 @@ import json, sys
 #from adventure import ADVENTURE1
 from schemas import GPT_TOOL_SLIDE_SCHEMA
 import uuid
+from pathlib import Path
 
 def gen_pptx(output_path, title, subtitle, template = "Entrevue_template_advanced", url = "pptx/generate_presentation_advanced"):
     json_response = ""
@@ -356,7 +357,378 @@ def main(test_number):
     if test_number == 8:
         json_path = f'./input/test_slide_simple.json'
         gen_pptx(json_path,"Presentation Title", "Presentation Subtitle", "Entrevue_template" ,"pptx/generate_presentation")
-                      
+
+    if test_number == 9:
+        from references import GPT_TOOL_SCHEMA__BOOK_REFERENCE_small
+
+        print(GPT_TOOL_SCHEMA__BOOK_REFERENCE_small)
+        url = f'http://localhost:{PORT}/llm/infer'
+        print("requesting to ", url)
+        
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "system_prompt": "Recommend a book based on the user's input, explain your choice, provide the url and book title as a json according to the provided json schema.",
+            "model":"gpt-4o",
+            "user_prompt": "I'm looking for a classic science fiction book to read. What would you recommend?",
+            "api_key": api_key,
+            "filename": "book.json",
+            "schema": GPT_TOOL_SCHEMA__BOOK_REFERENCE_small
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            print("----------")
+            print("response = ", response)
+            print("----------")
+            print("headers =", response.headers)
+            print("----------")
+
+            # Get the presentation name from the response headers
+            json_file = response.headers.get('Content-Disposition',"result.out").split("filename=")[-1].strip('"' + "'")
+            print(f"Presentation name: {json_file}")
+            
+            # Save the response content to a file
+            output_path = './test/'+json_file
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+            print(f"Presentation saved to {output_path}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error during request: {e}")
+                    
+        
+        pass        
+    #
+
+    if test_number == 10:
+        from references import GPT_TOOL_SCHEMA_FINANCIAL_REFERENCES
+        url = f'http://localhost:{PORT}/llm/infer'
+        print("requesting to ", url)
+        
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "system_prompt": "Recommend a financial reference based on the user's input, explain your choice, provide the url and book title as a json according to the provided json schema.",
+            "model":"gpt-4o",
+            "user_prompt": "I'm looking for something to help me understand venture capital and what interview questions I'm likely to get for a VC job",
+            "api_key": api_key,
+            "filename": "book.json",
+            "schema": GPT_TOOL_SCHEMA_FINANCIAL_REFERENCES
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            print("----------")
+            print("response = ", response)
+            print("----------")
+            print("headers =", response.headers)
+            print("----------")
+
+            # Get the presentation name from the response headers
+            json_file = response.headers.get('Content-Disposition',"result.out").split("filename=")[-1].strip('"' + "'")
+            print(f"Presentation name: {json_file}")
+            
+            # Save the response content to a file
+            output_path = './test/'+json_file
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+            print(f"Presentation saved to {output_path}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error during request: {e}")
+                    
+        
+        pass        
+    #         
+
+    if test_number == 11:
+        from references import GPT_TOOL_SCHEMA_30_REFS, INSTRUCTION_30_REFS
+
+        resume_string = ""
+        # read resume from input/resume.txt
+        try:
+            with open('input/resume.txt', 'r') as resume_file:
+                resume_string = resume_file.read()
+        except FileNotFoundError:
+            print("Error: resume.txt file not found.")
+            return
+        #
+        
+        knowledge_gap_string = ""
+        # read the knowledge_gap from input/knowledge_gap.txt
+        try:
+            with open('input/knowledge_gap.txt', 'r') as knowledge_gap_file:
+                knowledge_gap_string = knowledge_gap_file.read()
+        except FileNotFoundError:
+            print("Error: knowledge_gap.txt file not found.")
+            return
+        #
+
+        job_description_string = ""
+        # read the job_description from input/job_description.txt
+        try:
+            with open('input/job_description.txt', 'r') as job_description_file:
+                job_description_string = job_description_file.read()
+        except FileNotFoundError:
+            print("Error: job_description.txt file not found.")
+            return
+
+        #instruction_string = INSTRUCTION_30_REFS
+        instruction_string = "Based on the KNOWLEDGE GAP and the JOB DESCRIPTION, generate 6 groups of up to 5 references each. Each group should be a list of up to 5 references that would help the user fill in the gaps in their knowledge. Provide the references as a json according to the provided json schema. Do not reuse references from one group to another."
+        #instruction_string = "Based on the KNOWLEDGE GAP, generate 6 groups of up to 5 references each. Each group should be a list of up to 5 references that would help the user fill in the gaps in their knowledge. Provide the references as a json according to the provided json schema. Do not reuse references from one group to another."
+        #instruction_string = "For each gap identified in the KNOWLEDGE GAP section, generate up to 5 references that will help the candidate fill that gap in their knowledge. Ensure that each reference is not used more than once. Provide the references as a json according to the provided json schema. "
+        prompt_string = ""
+        #prompt_string += "<RESUME>\n"+resume_string+"\n</RESUME>\n\n"
+        prompt_string += "<KNOWLEDGE_GAP>\n"+knowledge_gap_string+"\n</KNOWLEDGE_GAP>\n\n"
+        prompt_string += "<JOB_DESCRIPTION>\n"+job_description_string+"\n</JOB_DESCRIPTION>\n\n"
+
+
+        url = f'http://localhost:{PORT}/llm/infer'
+        print("requesting to ", url)
+        
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "system_prompt": instruction_string,
+            "model":"gpt-4o",
+            "user_prompt": prompt_string,
+            "api_key": api_key,
+            "filename": "30ref.json",
+            "schema": GPT_TOOL_SCHEMA_30_REFS
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            print("----------")
+            print("response = ", response)
+            print("----------")
+            print("headers =", response.headers)
+            print("----------")
+
+            # Get the presentation name from the response headers
+            json_file = response.headers.get('Content-Disposition',"result.out").split("filename=")[-1].strip('"' + "'")
+            print(f"Presentation name: {json_file}")
+            
+            # Save the response content to a file
+            output_path = Path('./test/',json_file+"_"+uuid.uuid4().hex+".txt")
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+            print(f"Presentation saved to {output_path}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error during request: {e}")
+        #                    
+    #         
+
+    if test_number == 12:
+        from references import GPT_TOOL_SCHEMA_JULY
+
+        resume_string = ""
+        # read resume from input/resume.txt
+        try:
+            with open('input/resume.txt', 'r') as resume_file:
+                resume_string = resume_file.read()
+        except FileNotFoundError:
+            print("Error: resume.txt file not found.")
+            return
+        #
+        
+        knowledge_gap_string = ""
+        # read the knowledge_gap from input/knowledge_gap.txt
+        try:
+            with open('input/knowledge_gap.txt', 'r') as knowledge_gap_file:
+                knowledge_gap_string = knowledge_gap_file.read()
+        except FileNotFoundError:
+            print("Error: knowledge_gap.txt file not found.")
+            return
+        #
+
+        job_description_string = ""
+        # read the job_description from input/job_description.txt
+        try:
+            with open('input/job_description.txt', 'r') as job_description_file:
+                job_description_string = job_description_file.read()
+        except FileNotFoundError:
+            print("Error: job_description.txt file not found.")
+            return
+
+        #instruction_string = INSTRUCTION_30_REFS
+        #instruction_string = "Based on the KNOWLEDGE GAP and the JOB DESCRIPTION, generate 6 groups of up to 5 references each. Each group should be a list of up to 5 references that would help the user fill in the gaps in their knowledge. Provide the references as a json according to the provided json schema. Do not reuse references from one group to another."
+        #instruction_string = "Based on the KNOWLEDGE GAP, generate 6 groups of up to 5 references each. Each group should be a list of up to 5 references that would help the user fill in the gaps in their knowledge. Provide the references as a json according to the provided json schema. Do not reuse references from one group to another."
+        instruction_string = "List each gap present in the KNOWLEDGE GAP section. For each gap identified in the KNOWLEDGE GAP section, generate up to 5 references that will help the candidate fill that gap in their knowledge. Ensure that each reference is not used more than once. Provide the references as a json according to the provided json schema. "
+        prompt_string = ""
+        #prompt_string += "<RESUME>\n"+resume_string+"\n</RESUME>\n\n"
+        prompt_string += "<KNOWLEDGE_GAP>\n"+knowledge_gap_string+"\n</KNOWLEDGE_GAP>\n\n"
+        #prompt_string += "<JOB_DESCRIPTION>\n"+job_description_string+"\n</JOB_DESCRIPTION>\n\n"
+
+        print("KNOWLEDGE GAP = ", knowledge_gap_string);
+        url = f'http://localhost:{PORT}/llm/infer'
+        print("requesting to ", url)
+        
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "system_prompt": instruction_string,
+            "model":"gpt-4o",
+            "user_prompt": prompt_string,
+            "api_key": api_key,
+            "filename": "gaps_refs.json",
+            "schema": GPT_TOOL_SCHEMA_JULY
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            print("----------")
+            print("response = ", response)
+            print("----------")
+            print("headers =", response.headers)
+            print("----------")
+
+            # Get the presentation name from the response headers
+            json_file = response.headers.get('Content-Disposition',"result.out").split("filename=")[-1].strip('"' + "'")
+            print(f"Presentation name: {json_file}")
+            
+            # Save the response content to a file
+            output_path = Path('./test/',json_file+"_"+uuid.uuid4().hex+".txt")
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+            print(f"Presentation saved to {output_path}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error during request: {e}")
+        #                    
+    # 
+
+    if test_number == 13:
+        from references import GPT_TOOL_SCHEMA_JULY4, LINK_REFERENCES
+
+        schema = GPT_TOOL_SCHEMA_JULY4
+        resume_string = ""
+        # read resume from input/resume.txt
+        try:
+            with open('input/resume.txt', 'r') as resume_file:
+                resume_string = resume_file.read()
+        except FileNotFoundError:
+            print("Error: resume.txt file not found.")
+            return
+        #
+        
+        knowledge_gap_string = ""
+        # read the knowledge_gap from input/knowledge_gap.txt
+        try:
+            with open('input/knowledge_gap.txt', 'r') as knowledge_gap_file:
+                knowledge_gap_string = knowledge_gap_file.read()
+        except FileNotFoundError:
+            print("Error: knowledge_gap.txt file not found.")
+            return
+        #
+
+        job_description_string = ""
+        # read the job_description from input/job_description.txt
+        try:
+            with open('input/job_description.txt', 'r') as job_description_file:
+                job_description_string = job_description_file.read()
+        except FileNotFoundError:
+            print("Error: job_description.txt file not found.")
+            return
+
+        instruction_string = "List each gap present in the KNOWLEDGE GAP section. For each identified gap, generate 2 to 5 references taken from the <REFERENCES> section that can help the candidate fill that gap in their knowledge. Ensure that each gap is addressed. Ensure that each reference is not used more than once. Provide the references as a json according to the provided json schema. "
+        instruction_string += LINK_REFERENCES
+        prompt_string = "<KNOWLEDGE_GAP>\n"+knowledge_gap_string+"\n</KNOWLEDGE_GAP>\n\n"
+
+        print("KNOWLEDGE GAP = ", knowledge_gap_string);
+        url = f'http://localhost:{PORT}/llm/infer'
+        print("requesting to ", url)
+        
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "system_prompt": instruction_string,
+            "model":"gpt-4o",
+            "user_prompt": prompt_string,
+            "api_key": api_key,
+            "filename": "gaps_refs.json",
+            "schema": schema
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            print("----------")
+            print("response = ", response)
+            print("----------")
+            print("headers =", response.headers)
+            print("----------")
+
+            # Get the presentation name from the response headers
+            json_file = response.headers.get('Content-Disposition',"result.out").split("filename=")[-1].strip('"' + "'")
+            print(f"Presentation name: {json_file}")
+            
+            # Save the response content to a file
+            output_path = Path('./test/',json_file+"_"+uuid.uuid4().hex+".txt")
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+            print(f"Presentation saved to {output_path}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error during request: {e}")
+        #                    
+    #   
+    # 
+    # 
+    # 
+    #
+
+    if test_number == 14:
+        
+        knowledge_gap_string = ""
+        # read the knowledge_gap from input/knowledge_gap.txt
+        try:
+            with open('input/knowledge_gap.txt', 'r') as knowledge_gap_file:
+                knowledge_gap_string = knowledge_gap_file.read()
+        except FileNotFoundError:
+            print("Error: knowledge_gap.txt file not found.")
+            return
+        #
+
+    
+        url = f'http://localhost:{PORT}/llm/remedial_resources'
+        print("requesting to ", url)
+        
+        headers = {'Content-Type': 'application/json'}
+        data = {
+            "gaps": knowledge_gap_string,
+            "api_key": api_key,
+            "model:": "gpt-4o",
+            "filename": "gaps_refs14.json"        
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            print("----------")
+            print("response = ", response)
+            print("----------")
+            print("headers =", response.headers)
+            print("----------")
+
+            # Get the presentation name from the response headers
+            json_file = response.headers.get('Content-Disposition',"result.out").split("filename=")[-1].strip('"' + "'")
+            print(f"Presentation name: {json_file}")
+            
+            # Save the response content to a file
+            output_path = Path('./test/',json_file+"_"+uuid.uuid4().hex+".txt")
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+            print(f"Presentation saved to {output_path}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error during request: {e}")
+        #                    
+    # 
+
 if __name__ == "__main__":
     # read the test number as the first passed argument
     test_number = 1

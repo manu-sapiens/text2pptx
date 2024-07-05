@@ -105,6 +105,10 @@ def call_openai_api(api_key, model, messages, tools=None):
     response = requests.post(url, headers=headers, data=data)
     print("response = ", response)
     
+    usage = None
+    finish_reason = None
+
+
     if response.status_code == 200:
         
         status_code = None
@@ -119,7 +123,8 @@ def call_openai_api(api_key, model, messages, tools=None):
             print("Error accessing response data: ", e)
             error = f"Error accessing response data for response = {response}"
         #
-        
+
+
         # campfire rule: leave the ratelimit in a good state
         try:
             #print("responde_headers = ", response_headers)
@@ -141,29 +146,51 @@ def call_openai_api(api_key, model, messages, tools=None):
         response_json = None
         try:
             response_json = json.loads(response_text)
-            
-            if False:
-                print("response_text= ", response_text)
-                print("response_json = ", response_json)
-                print("response_json['choices'] = ", response_json['choices'])
-                print("response_json['choices'][0] = ", response_json['choices'][0])  
-                print("response_json['choices'][0]['message'] = ", response_json['choices'][0]['message'])
-                print("response_json['choices'][0]['message']['content'] = ", response_json['choices'][0]['message']['content'])
-                print("response_json['choices'][0]['message']['tool_calls'] = ", response_json['choices'][0]['message']['tool_calls'])
-                print("response_json['choices'][0]['message']['tool_calls'][0] = ", response_json['choices'][0]['message']['tool_calls'][0])
-                print("response_json['choices'][0]['message']['tool_calls'][0]['function'] = ", response_json['choices'][0]['message']['tool_calls'][0]['function'])
-                print("response_json['choices'][0]['message']['tool_calls'][0]['function']['arguments'] = ", response_json['choices'][0]['message']['tool_calls'][0]['function']['arguments'])
-                print("_----------------_________----------_______")              
-            #        
-
-        except json.JSONDecodeError as e:
-            error = f"Failed to parse JSON response: {e} , for response_json = {response_json}"
+        except Exception as e:
+            error = f"Failed to parse JSON response: {e}"
+            print(error)
             logging.error(error)
         #
-        
+
+        try:
+            usage = response_json['usage']
+            print("response['usage'] = ", usage)
+        except Exception as e:
+            error += f"\nNo usage data: {e}"
+            print(error)
+            logging.error(error)
+        #
+
+
+
+
+        if False:
+            print("response_text= ", response_text)
+            print("response_json = ", response_json)
+            print("response_json['choices'] = ", response_json['choices'])
+            print("response_json['choices'][0] = ", response_json['choices'][0])  
+            print("response_json['choices'][0]['message'] = ", response_json['choices'][0]['message'])
+            print("response_json['choices'][0]['message']['content'] = ", response_json['choices'][0]['message']['content'])
+            print("response_json['choices'][0]['message']['tool_calls'] = ", response_json['choices'][0]['message']['tool_calls'])
+            print("response_json['choices'][0]['message']['tool_calls'][0] = ", response_json['choices'][0]['message']['tool_calls'][0])
+            print("response_json['choices'][0]['message']['tool_calls'][0]['function'] = ", response_json['choices'][0]['message']['tool_calls'][0]['function'])
+            print("response_json['choices'][0]['message']['tool_calls'][0]['function']['arguments'] = ", response_json['choices'][0]['message']['tool_calls'][0]['function']['arguments'])
+            print("_----------------_________----------_______")              
+        #        
+
+        try:
+            finish_reason = response_json['choices'][0]['finish_reason']
+            print("finish_reason = ", finish_reason)
+        except Exception as e:
+            error += f"\nError extracting finish_reason from OpenAI response: {e}"
+            print(error)
+            logging.error(error)
+        #
+
         if tools:
             try:
                 tool_call_data = response_json['choices'][0]['message']['tool_calls'][0]['function']['arguments']
+                print("finish_reason = ", finish_reason)
                 #print("tool_call_data = ", tool_call_data)
             except Exception as e:
                 error = f"Error extracting tool_call_data from OpenAI response {response_json}"
@@ -190,36 +217,62 @@ def call_openai_api(api_key, model, messages, tools=None):
         error = f"Failed to call API: {response.status_code} - {response.text}"
         logging.error(error)
     #
+    result["finish_reason"]=finish_reason
+    result["usage"]=usage
     
     return result, error
 #
 
 # we now need to use it both for regular chat completions and for chat completions with tools, and in a batch mode
-def create_openai_chat(api_key, model, system_prompt, user_prompt, simplified_schema):
+def create_openai_chat(api_key, model, system_prompt, user_prompt, passed_schema):
     
     result = None
     error = None
-    
-    if simplified_schema:
-        schema_string = decode_schema_string(simplified_schema)  
+    schema_dictionary = None
+    tool = None
+    tool_name = "json_answer"
+    tool_description = "Generate output using the specified schema"
 
-        print("------ schema ---------")
-        print(schema_string)
-        print("-----------------------")        
-        
-        tool_name = "json_answer"
-        tool_description = "Generate output using the specified schema"
+    if passed_schema:
+
+        need_decoding = False
+        try:
+            print("--- naive try -->")
+            schema_dictionary = json.loads(passed_schema)    
+            if not schema_dictionary:
+                need_decoding = True
+            else:
+                print("Did not need decoding")
+                tool = {
+                    "type": "function",
+                    "function": {
+                        "name": tool_name,
+                        "description": tool_description,
+                        "parameters": passed_schema
+                    }
+                }                
+        except:
+            print("Probably need to decode the string")
+            need_decoding = True
+
+        if need_decoding:
+            schema_string = decode_schema_string(passed_schema)  
+
+            print("------ decoded schema ---------")
+            print(schema_string)
+            print("-----------------------")        
+            try:
+                print("----->")
+                schema_dictionary = json.loads(schema_string)
+                print("schema_dictionary = ", schema_dictionary)
+                print("<-----")
+            except json.JSONDecodeError as e:
+                error = f"Failed to parse schema JSON: {e}"
+                #
+        #
+
         
         # Convert JSON schema string to a dictionary
-        schema_dictionary = None
-        try:
-            print("----->")
-            schema_dictionary = json.loads(schema_string)
-            print("schema_dictionary = ", schema_dictionary)
-            print("<-----")
-        except json.JSONDecodeError as e:
-            error = f"Failed to parse schema JSON: {e}"
-        #
 
 
         print("------ schema_dictionary ---------")
@@ -1043,6 +1096,210 @@ def text_to_slides_endpoint():
     result = md_to_pptx_handling(markdown, template, options, download_filename)
     return result
 #
+
+# Function to convert result to the specified schema
+def convert_to_presentation_json(remedial_result):
+    slides = []
+
+    # check that resources as a gap field
+    if 'remedial_resources' not in remedial_result:
+        e = f"Error: No remedial resources found in the response, remedial_result = {remedial_result}"
+        return None
+    #    
+    
+
+
+
+    for resource in remedial_result['remedial_resources']:
+        if 'gap' not in resource: resource['gap']= ''
+
+        gap = resource['gap']
+        gap_category = resource['gap_category']
+        remedial = resource['remedial']
+        sources = resource['sources']
+        reasonings = resource['reasonings']
+
+        print("gap = ", gap)
+        print("gap_category = ", gap_category)
+        print("remedial = ", remedial)
+        print("sources = ", sources)
+        print("reasonings = ", reasonings)
+
+
+        slide = {
+            "heading": gap,
+            "bullet_points": [
+                {
+                    "bullet_type": "bullet",
+                    "bullet_level": "0",
+                    "bullet_text": f"Category: {gap_category}"
+                },
+                {
+                    "bullet_type": "bullet",
+                    "bullet_level": "0",
+                    "bullet_text": f"Remedial Action: {remedial}"
+                },
+                {
+                    "bullet_type": "bullet",
+                    "bullet_level": "0",
+                    "bullet_text": "SOURCES"  
+                }
+            ]
+        }
+        
+        for url in sources:
+            print("url =", url)
+            slide['bullet_points'].append({
+                "bullet_type": "bullet",
+                "bullet_level": "1",
+                "bullet_text": url
+            })
+        
+        for reasoning in reasonings:
+            print("reasoning =", reasoning)
+            slide['bullet_points'].append({
+                "bullet_type": "bullet",
+                "bullet_level": "0",
+                "bullet_text": f"Reasoning: {reasoning}"
+            })
+        
+        print("-----------------")
+        print("slide = ", slide)
+        slides.append(slide)
+    #
+    print("------------------")
+    print("Slides = ", slides)
+    return {"slides": slides}
+#
+
+@app.route('/llm/remedial_resources', methods=['POST'])
+def remedial_resources_endpoint():
+    from schemas import REMEDIAL_SCHEMA, REMEDIAL_SYSTEM_PROMPT, REMEDIAL_REFERENCES
+    data = None
+    print("remedial_resources starting")
+    
+    try:
+        data = request.get_json()
+        print(data)
+    except Exception as e:
+        print("Error getting JSON data: ", e)
+        return jsonify({'error': 'Error getting JSON data'}), 500
+    #
+
+    gaps = data.get('gaps', None)
+    print("gaps", gaps)
+    if not gaps: return jsonify({'error': 'Missing gaps'}), 400
+    
+    references = data.get('references', REMEDIAL_REFERENCES)
+    print("references = ", len(references))
+    ref_data = None
+    ref_list = None
+    ref_url_dict = None
+    try:
+        ref_data = json.loads(references)
+        # Extract all the 'ref' values into an array
+        ref_list = [resource["ref"] for resource in ref_data["resources"]]
+        # Create the dictionary with 'ref' as keys and 'url' as values
+        ref_url_dict = {resource["ref"]: resource["url"] for resource in ref_data["resources"]}
+    except Exception as e:
+        return jsonify({'error': 'Error parsing references'}), 400
+    #
+    #print("ref_data = ", ref_data)
+    #print("ref_list = ", ref_list)
+    #print("ref_url_dict = ", ref_url_dict)
+    if not ref_data or not  ref_list or not ref_url_dict: return jsonify({'error': 'Could not obtain references data'}), 400
+    print("Ref_data acquired")
+
+    remedial_schema_dict = None
+    try:
+        remedial_schema_dict = json.loads(REMEDIAL_SCHEMA)
+        remedial_schema_dict["properties"]["remedial_resources"]["items"]["properties"]["sources"]["items"]["enum"] = ref_list
+        #print(remedial_schema)
+    except Exception as e:
+        error = f'Error parsing remedial schema, e={e}'
+        print("ERROR: ",error)
+        return jsonify({'error': error}), 400
+    #
+
+    # convert dictionary into a string
+    
+    remedial_schema = json.dumps(remedial_schema_dict)
+    print("--")
+    if not remedial_schema_dict: return jsonify({'error': 'Could not obtain remedial schema'}), 400
+    print("--+")
+    #print("remedial_schema = " , remedial_schema)
+    print("Remedial schema generated")
+    system_prompt = data.get('system_prompt', REMEDIAL_SYSTEM_PROMPT)
+    system_prompt += "<REFERENCES>\n"+references+"\n</REFERENCES>\n\n"
+    user_prompt = "<KNOWLEDGE_GAP>\n"+gaps+"\n</KNOWLEDGE_GAP>\n\n"
+    api_key = data.get('api_key', None)
+    if not api_key: return jsonify({'error': 'Missing API key'}), 400
+    model = data.get('model', 'gpt-4o')#gpt-3.5-turbo')
+    print("Ready to call create_openai_chat")
+    remedial_result = None
+    error = None
+    try:
+        remedial_result, error = create_openai_chat(api_key, model, system_prompt, user_prompt, remedial_schema)
+    except Exception as e:
+       ee = f'error when calling create_openai_chat(api_key={api_key}, model={model}, remedial_schema={remedial_schema_dict}, system_prompt={system_prompt}, user_prompt={user_prompt}), error={error}, e={e}'
+       return jsonify({'error':ee}), 500
+    #
+    usage = remedial_result["usage"]
+    print("Usage = ", usage)
+    finish_reason = remedial_result["finish_reason"]
+    print("finish_reason = ", finish_reason)
+
+    print("-------")
+
+    if not remedial_result: return jsonify({f'error when calling create_openai_chat(api_key={api_key}, model={model}, remedial_schema={remedial_schema_dict}, system_prompt={system_prompt}, user_prompt={user_prompt}), error=' : error}), 500
+
+    if not remedial_result['remedial_resources']: 
+        ee = f'No remedial resources in openai response found: response = {result}, error = {error}'
+        print(ee)
+        return jsonify({'error': ee}), 400
+    #
+
+    # Process each item in 'remedial_resources'
+    for resource in remedial_result['remedial_resources']:
+        # Extract the list of references
+        references = resource['sources']
+        
+        # Validate and filter references
+        valid_references = []
+        for ref in references:
+            if ref in ref_url_dict:
+                valid_references.append(ref_url_dict[ref])
+            else:
+                print(f"Warning: Reference {ref} not found in the dictionary.")
+            #
+        #
+
+        
+        # Replace the references with URLs
+        resource['sources'] = valid_references
+    #
+
+    print("remedial_result = ", remedial_result)
+    # Now, we will make a presentation-compatible json using those gathered information
+    slides = None
+    try:
+        slides = convert_to_presentation_json(remedial_result)
+    except Exception as e:
+        ee = f"Error converting to presentation json with passed arg: remedial_result = {remedial_result}, error = {e}"
+        print(ee)
+        return jsonify({'error': ee}), 500
+    #
+
+    if not slides:
+        ee = f"Error converting to presentation json returned None result, passed arg: remedial_result was = {remedial_result}, error = {e}"
+        print(ee)
+        return jsonify({'error': ee}), 500
+    
+    print("Slides = ", slides)
+    return slides
+#
+
+
 
 if __name__ == '__main__':
     # Example usage

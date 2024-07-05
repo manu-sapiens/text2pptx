@@ -1,0 +1,109 @@
+{
+    "name": "gap_remedial_resources",
+    "description": "Generate remedial resources for each gap",
+    "parameters": {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GroupedFinancialResources",
+  "type": "object",
+  "properties": {
+    "gap_list": {
+      "type": "array",
+      "description": "An array listing all the identified gaps the candidates need to overcome",
+      "items": {
+        "type": "string",
+        "description": "A gap the candidate needs to overcome"
+      }
+    },
+    "remedial_resources": {
+      "type": "array",
+      "description": "An array of objects, each containing information about a financial resource",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gap_being_addressed": {
+            "type": "string",
+            "description": "The specific gap the candidate needs to overcome"
+          },
+          "sources": {
+            "type": "array",
+            "description": "An array of financial resource URLs with metadata",
+            "items": {
+              "type": "string",
+              "description": "A reference to a financial resource URL with metadata",
+              "enum": [
+                "InvBanRes_0001",
+                "InvBanRes_0002",
+                "InvBanRes_0003",
+                "InvBanRes_0004",
+                "InvBanRes_0005",
+                "InvBanRes_0006",
+                "InvBanRes_0007",
+                "InvBanRes_0008",
+                "InvBanRes_0009",
+                "InvBanRes_0010",
+                "PriEquRes_0001",
+                "PriEquRes_0002",
+                "PriEquRes_0003",
+                "PriEquRes_0004",
+                "PriEquRes_0005",
+                "PriEquRes_0006",
+                "PriEquRes_0007",
+                "PriEquRes_0008",
+                "PriEquRes_0009",
+                "PriEquRes_0010",
+                "VenCapRes_0001",
+                "VenCapRes_0002",
+                "VenCapRes_0003",
+                "VenCapRes_0004",
+                "VenCapRes_0005",
+                "VenCapRes_0006",
+                "VenCapRes_0007",
+                "VenCapRes_0008",
+                "VenCapRes_0009",
+                "VenCapRes_0010",
+                "HedFunRes_0001",
+                "HedFunRes_0002",
+                "HedFunRes_0003",
+                "HedFunRes_0004",
+                "HedFunRes_0005",
+                "HedFunRes_0006",
+                "HedFunRes_0007",
+                "HedFunRes_0008",
+                "HedFunRes_0009",
+                "HedFunRes_0010",
+                "AccRes_0001",
+                "AccRes_0002",
+                "AccRes_0003",
+                "AccRes_0004",
+                "AccRes_0005",
+                "AccRes_0006",
+                "AccRes_0007",
+                "AccRes_0008",
+                "AccRes_0009",
+                "AccRes_0010",
+                "RisAnaRes_0001",
+                "RisAnaRes_0002",
+                "RisAnaRes_0003",
+                "RisAnaRes_0004",
+                "RisAnaRes_0005",
+                "ITRes_0001",
+                "ITRes_0002",
+                "ITRes_0003"
+              ]
+            }
+          },
+          "reasonings": {
+            "type": "array",
+            "description": "An array of reasons why these resources are relevant",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["gap_being_addressed", "sources", "reasonings"]
+      }
+    }
+  },
+  "required": ["gap_list","remedial_resources"]
+  }
+}
