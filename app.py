@@ -224,14 +224,12 @@ def call_openai_api(api_key, model, messages, tools=None):
 #
 
 # we now need to use it both for regular chat completions and for chat completions with tools, and in a batch mode
-def create_openai_chat(api_key, model, system_prompt, user_prompt, passed_schema):
+def create_openai_chat(api_key, model, system_prompt, user_prompt, passed_schema, tool_name = "json_answer", tool_description = "Generate output using the specified schema"):
     
     result = None
     error = None
     schema_dictionary = None
     tool = None
-    tool_name = "json_answer"
-    tool_description = "Generate output using the specified schema"
 
     if passed_schema:
 
@@ -729,7 +727,7 @@ def simple_inference_endpoint():
         try:
             result, error = simple_inference(data)
         except Exception as e:
-            error = f"Error during inference processing: {e}"
+            error = f"Error during inference processing: {e}, {error}"
         #
     else:
         error = f"No data found in request {request}"
@@ -1172,8 +1170,46 @@ def convert_to_presentation_json(remedial_result):
     return {"slides": slides}
 #
 
+def extract_gaps(gaps, api_key):
+    from schemas import GAP_SCHEMA
+    gap_system_prompt = "Read the provided DOCUMENT and extract as a JSON the gaps that need to be filled in the document."
+    gap_user_prompt = "<DOCUMENT>\n"+gaps+"\n</DOCUMENT>\n\n"
+    gap_model = 'gpt-3.5-turbo'
+    gaps_result = None
+    error = None
+    try:
+        gaps_result, error = create_openai_chat(api_key, gap_model, gap_system_prompt, gap_user_prompt, GAP_SCHEMA)
+    except Exception as e:
+       ee = f'error when calling create_openai_chat(api_key={api_key}, model={gap_model}, remedial_schema={GAP_SCHEMA}, system_prompt={gap_system_prompt}, user_prompt={gap_user_prompt}), error={error}, e={e}'
+       return jsonify({'error':ee}), 500
+    #
+    
+    if not gaps_result: 
+        ee = f'error when calling create_openai_chat(api_key={api_key}, model={gap_model}, remedial_schema={GAP_SCHEMA}, system_prompt={gap_system_prompt}, user_prompt={gap_user_prompt}), error={error}'
+        return jsonify({'error':ee}), 500
+    #
+
+    usage = gaps_result["usage"]
+    print("Usage = ", usage)
+    finish_reason = gaps_result["finish_reason"]
+
+    gap_list = None
+    try:
+        gap_list = gaps_result['gap_list']
+    except Exception as e:
+        ee = f'error when extracting gap_list from gaps_result={gaps_result}, error={e}'
+        return jsonify({'error':ee}), 500
+    #
+    if not gap_list:
+        ee = f'No gap_list in gaps_result={gaps_result}'
+        return jsonify({'error':ee}), 500
+    #
+    print("Gap List = ", gap_list)
+    return gap_list
+#    
+
 @app.route('/llm/remedial_resources', methods=['POST'])
-def remedial_resources_endpoint():
+def remedial_resources_endpoint():    
     from schemas import REMEDIAL_SCHEMA, REMEDIAL_SYSTEM_PROMPT, REMEDIAL_REFERENCES
     data = None
     print("remedial_resources starting")
@@ -1185,13 +1221,71 @@ def remedial_resources_endpoint():
         print("Error getting JSON data: ", e)
         return jsonify({'error': 'Error getting JSON data'}), 500
     #
-
+    # -----------------------------------------------
     gaps = data.get('gaps', None)
     print("gaps", gaps)
     if not gaps: return jsonify({'error': 'Missing gaps'}), 400
-    
+
     references = data.get('references', REMEDIAL_REFERENCES)
     print("references = ", len(references))
+    if not gaps: return jsonify({'error': 'Missing references'}), 400
+
+    api_key = data.get('api_key', None)
+    if not api_key: return jsonify({'error': 'Missing API key'}), 400
+    # -----------------------------------------------
+    remedial_schema_dict = None
+    try:
+        remedial_schema_dict = json.loads(REMEDIAL_SCHEMA)
+    except Exception as e:
+        error = f'Error parsing remedial schema: {REMEDIAL_SCHEMA}, e={e}'
+        print("ERROR: ",error)
+        return jsonify({'error': error}), 400
+    #
+
+
+    # *************** GAP LIST GENERATION ****************
+    gap_list = None
+    try:
+        gap_list = extract_gaps(gaps, api_key)
+    except Exception as e:
+        ee = f'error when extracting gap_list from gaps={gaps}, api_key={api_key}, model={model}, schema={GAP_SCHEMA}, error={e}'
+        return jsonify({'error':ee}), 500
+    #
+    if not gap_list:
+        ee = f'No gap_list in gaps={gaps}, api_key={api_key}, model={model}, schema={GAP_SCHEMA}'
+        return jsonify({'error':ee}), 500
+    #
+    print("Gap List = ", gap_list)
+    nb_of_gaps = len(gap_list)
+    # *****************************************************
+
+
+    try:
+        remedial_schema_dict["properties"]["remedial_resources"]["description"]=f"An array of exactly {nb_of_gaps} objects, each containing information about a remedial resource"
+    except Exception as e:
+        error = f'Error setting description of remedial_resources, gap #: {nb_of_gaps}, schema = {remedial_schema_dict}, e={e}'
+        print("ERROR: ",error)
+        return jsonify({'error': error}), 400
+    #
+
+    try:
+        remedial_schema_dict["properties"]["remedial_resources"]["items"]["properties"]["gap"]["enum"] = gap_list
+    except Exception as e:
+        error = f'Error setting enum of remedial_resources gap, gap_list #: {gap_list}, schema = {remedial_schema_dict}, e={e}'
+        print("ERROR: ",error)
+        return jsonify({'error': error}), 400
+    #
+    try:
+        remedial_schema_dict["properties"]["remedial_resources"]["minItems"]=nb_of_gaps
+        remedial_schema_dict["properties"]["remedial_resources"]["maxItems"]=nb_of_gaps
+    except Exception as e:
+        error = f'Error setting minItems por maxItems of remedial_resources gap #: {nb_of_gaps}, schema = {remedial_schema_dict}, e={e}'
+        print("ERROR: ",error)
+        return jsonify({'error': error}), 400
+    #
+
+    # -----------------------------------------------
+    # SWAP the REFERENCES into the remedial schema
     ref_data = None
     ref_list = None
     ref_url_dict = None
@@ -1204,54 +1298,48 @@ def remedial_resources_endpoint():
     except Exception as e:
         return jsonify({'error': 'Error parsing references'}), 400
     #
-    #print("ref_data = ", ref_data)
-    #print("ref_list = ", ref_list)
-    #print("ref_url_dict = ", ref_url_dict)
     if not ref_data or not  ref_list or not ref_url_dict: return jsonify({'error': 'Could not obtain references data'}), 400
     print("Ref_data acquired")
 
-    remedial_schema_dict = None
     try:
-        remedial_schema_dict = json.loads(REMEDIAL_SCHEMA)
         remedial_schema_dict["properties"]["remedial_resources"]["items"]["properties"]["sources"]["items"]["enum"] = ref_list
-        #print(remedial_schema)
     except Exception as e:
         error = f'Error parsing remedial schema, e={e}'
         print("ERROR: ",error)
         return jsonify({'error': error}), 400
     #
 
+
     # convert dictionary into a string
     
     remedial_schema = json.dumps(remedial_schema_dict)
-    print("--")
     if not remedial_schema_dict: return jsonify({'error': 'Could not obtain remedial schema'}), 400
-    print("--+")
-    #print("remedial_schema = " , remedial_schema)
     print("Remedial schema generated")
+
     system_prompt = data.get('system_prompt', REMEDIAL_SYSTEM_PROMPT)
     system_prompt += "<REFERENCES>\n"+references+"\n</REFERENCES>\n\n"
     user_prompt = "<KNOWLEDGE_GAP>\n"+gaps+"\n</KNOWLEDGE_GAP>\n\n"
-    api_key = data.get('api_key', None)
-    if not api_key: return jsonify({'error': 'Missing API key'}), 400
+    tool_name = "create_presentation"
+    tool_description = "Organize remedial resources into a presentation"
     model = data.get('model', 'gpt-4o')#gpt-3.5-turbo')
     print("Ready to call create_openai_chat")
     remedial_result = None
     error = None
+
+    # ************** GENERATE REMEDIAL *****************
     try:
-        remedial_result, error = create_openai_chat(api_key, model, system_prompt, user_prompt, remedial_schema)
+        remedial_result, error = create_openai_chat(api_key, model, system_prompt, user_prompt, remedial_schema,tool_name,tool_description)
     except Exception as e:
-       ee = f'error when calling create_openai_chat(api_key={api_key}, model={model}, remedial_schema={remedial_schema_dict}, system_prompt={system_prompt}, user_prompt={user_prompt}), error={error}, e={e}'
+       ee = f'error when calling create_openai_chat(api_key={api_key}, model={model}, remedial_schema={remedial_schema_dict}, system_prompt={system_prompt}, user_prompt={user_prompt}), tool_name = {tool_name}, tool_description = {tool_description}, error={error}, e={e}'
        return jsonify({'error':ee}), 500
     #
-    usage = remedial_result["usage"]
-    print("Usage = ", usage)
-    finish_reason = remedial_result["finish_reason"]
-    print("finish_reason = ", finish_reason)
-
-    print("-------")
-
     if not remedial_result: return jsonify({f'error when calling create_openai_chat(api_key={api_key}, model={model}, remedial_schema={remedial_schema_dict}, system_prompt={system_prompt}, user_prompt={user_prompt}), error=' : error}), 500
+    # ***************************************************
+
+    usage = remedial_result["usage"]
+    finish_reason = remedial_result["finish_reason"]
+    print("Usage = ", usage)
+    print("finish_reason = ", finish_reason)
 
     if not remedial_result['remedial_resources']: 
         ee = f'No remedial resources in openai response found: response = {result}, error = {error}'
@@ -1273,13 +1361,12 @@ def remedial_resources_endpoint():
                 print(f"Warning: Reference {ref} not found in the dictionary.")
             #
         #
-
-        
         # Replace the references with URLs
         resource['sources'] = valid_references
     #
-
     print("remedial_result = ", remedial_result)
+
+    # ***************** GENERATE SLIDES ************************
     # Now, we will make a presentation-compatible json using those gathered information
     slides = None
     try:
@@ -1289,13 +1376,15 @@ def remedial_resources_endpoint():
         print(ee)
         return jsonify({'error': ee}), 500
     #
-
     if not slides:
         ee = f"Error converting to presentation json returned None result, passed arg: remedial_result was = {remedial_result}, error = {e}"
         print(ee)
         return jsonify({'error': ee}), 500
-    
+    #
     print("Slides = ", slides)
+    # **********************************************************
+
+
     return slides
 #
 

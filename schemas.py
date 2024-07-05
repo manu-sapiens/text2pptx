@@ -191,7 +191,7 @@ GPT_TOOL_SLIDE_SCHEMA = """
 }
 """
 
-REMEDIAL_SCHEMA = '''
+REMEDIAL_SCHEMA_old = '''
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "GroupedFinancialResources",
@@ -249,7 +249,7 @@ REMEDIAL_SCHEMA = '''
 }
 '''
 
-REMEDIAL_SYSTEM_PROMPT = "List each gap present in the KNOWLEDGE_GAP section. For each identified gap, generate 2 to 5 references taken from the <REFERENCES> section that can help the candidate fill that gap in their knowledge. Ensure that each gap is addressed. Ensure that each reference is not used more than once. Provide the references as a json according to the provided json schema."
+REMEDIAL_SYSTEM_PROMPT = "Use your tool to create a presentation helping the user bridge the gap in their knowledge. For each identified gap in the <GAPS> section, generate 2 to 5 references taken from the <REFERENCES> section that can help the candidate fill that gap in their knowledge. Ensure that each gap is addressed. Ensure that each reference is not used more than once. Provide the references as a JSON according to the provided json schema."
 
 REMEDIAL_REFERENCES = '''
 {
@@ -626,5 +626,74 @@ REMEDIAL_REFERENCES = '''
       "url": "https://www.jobzmall.com/careers/financial-data-scientist/faqs/how-can-i-best-prepare-for-a-career-as-a-financial-data-scientist"
     }
   ]
+}
+'''
+
+GAP_SCHEMA = '''
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FinancialKnowledgeGap",
+  "type": "object",
+  "properties": {
+    "gap_list": {
+      "type": "array",
+      "description": "An array listing all the identified gaps the candidates need to overcome",
+      "items": {
+        "type": "string",
+        "description": "A gap the candidate needs to overcome"
+      }
+    }
+  },
+  "required": ["gap_list"]
+}
+'''
+
+REMEDIAL_SCHEMA = '''
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GroupedFinancialResources",
+  "type": "object",
+  "properties": {
+    "remedial_resources": {
+      "type": "array",
+      "description": "An array of exactly two objects, each containing information about a financial resource",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gap": {
+            "type": "string",
+            "enum": ["Gap A", "Gap B"]
+          },
+          "gap_category": {
+            "type": "string",
+            "description": "The title of the category"
+          },
+          "remedial": {
+            "type": "string",
+            "description": "Explain how these resources will help the candidate overcome a specific gap"
+          },
+          "sources": {
+            "type": "array",
+            "description": "An array of financial resource URLs with metadata",
+            "items": {
+              "type": "string",
+              "description": "A reference to a financial resource URL with metadata"
+            }
+          },
+          "reasonings": {
+            "type": "array",
+            "description": "An array of reasons why these resources are relevant",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["gap", "gap_category", "remedial", "sources", "reasonings"]
+      },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  "required": ["remedial_resources"]
 }
 '''
