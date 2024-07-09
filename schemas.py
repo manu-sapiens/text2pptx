@@ -697,3 +697,59 @@ REMEDIAL_SCHEMA = '''
   "required": ["remedial_resources"]
 }
 '''
+
+REMEDIAL_SCHEMA_CONST = '''
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": 
+  {
+    "references": 
+    {
+      "type":"array",
+      "description":"A list of references to material useful to bridge a gap in knowledge",
+      "items": 
+      {
+        "type":"object",
+        "properties": 
+        {
+          "source":
+          {
+            "type": "string",
+            "enum": ["value1", "value2", "value3", "value4", "value5"]
+          },
+          "explanation":
+          {
+              "type":"string",
+              "description":"How this resource can help the candidate bridge the gap in knowledge"
+          }
+        }
+      }
+    }
+  },
+  "title": "GroupedFinancialResources",
+  "type": "object",
+  "properties": {},
+  "required": []
+}
+
+'''
+
+GAP_PROPERTIES_EXAMPLE='''
+        "gap_1":
+        {
+          "type":"object",
+          "properties":
+          {
+            "gap": 
+            {
+              "type": "string",
+              "const": "some value here"
+            },
+            "sources": 
+            {
+              "$ref": "#/definitions/references"
+            }
+          },
+          "required": ["gap", "sources"]
+        },
+'''

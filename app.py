@@ -1170,6 +1170,51 @@ def convert_to_presentation_json(remedial_result):
     return {"slides": slides}
 #
 
+# Function to convert result to the specified schema
+def convert_to_classic_bullet_points_json(result):
+    slides = []
+
+    for resource in result['remedial_resources']:
+
+        gap = resource['gap']
+        gap_category = resource['gap_category']
+        remedial = resource['remedial']
+        sources = resource['sources']
+        reasonings = resource['reasonings']
+
+        #section_header_slide = {
+        #    "type": "sectionheader",
+        #    "heading": resource['gap'],
+        #    "bullet_points": [
+        #        [f"Category: {resource['gap_category']}"],
+        #        [f"Remedial Action: {resource['remedial']}"]
+        #    ]
+        #}
+        
+        bullet_points_slide = {
+            "heading": gap,
+            "bullet_points": []
+        }
+        
+        # Adding sources to the bullet points
+        bullet_points_slide['bullet_points'].append(remedial)
+        sources_bullet = ["Sources"]
+        for url in sources:
+            sources_bullet.append([[url]])
+        bullet_points_slide['bullet_points'].append(sources_bullet)
+        
+        # Adding reasonings to the bullet points
+        reasonings_bullet = ["Reasoning"]
+        for reasoning in reasonings:
+            reasonings_bullet.append([[reasoning]])
+        bullet_points_slide['bullet_points'].append(reasonings_bullet)
+        
+        #slides.append(section_header_slide)
+        slides.append(bullet_points_slide)
+
+    return {"slides": slides}
+
+
 def extract_gaps(gaps, api_key):
     from schemas import GAP_SCHEMA
     gap_system_prompt = "Read the provided DOCUMENT and extract as a JSON the gaps that need to be filled in the document."
@@ -1210,7 +1255,7 @@ def extract_gaps(gaps, api_key):
 
 @app.route('/llm/remedial_resources', methods=['POST'])
 def remedial_resources_endpoint():    
-    from schemas import REMEDIAL_SCHEMA, REMEDIAL_SYSTEM_PROMPT, REMEDIAL_REFERENCES
+    from schemas import REMEDIAL_SYSTEM_PROMPT, REMEDIAL_REFERENCES
     data = None
     print("remedial_resources starting")
     
@@ -1232,16 +1277,9 @@ def remedial_resources_endpoint():
 
     api_key = data.get('api_key', None)
     if not api_key: return jsonify({'error': 'Missing API key'}), 400
-    # -----------------------------------------------
-    remedial_schema_dict = None
-    try:
-        remedial_schema_dict = json.loads(REMEDIAL_SCHEMA)
-    except Exception as e:
-        error = f'Error parsing remedial schema: {REMEDIAL_SCHEMA}, e={e}'
-        print("ERROR: ",error)
-        return jsonify({'error': error}), 400
-    #
 
+    advanced = data.get('advanced', False)
+    print("advanced = ", advanced)
 
     # *************** GAP LIST GENERATION ****************
     gap_list = None
@@ -1260,31 +1298,6 @@ def remedial_resources_endpoint():
     # *****************************************************
 
 
-    try:
-        remedial_schema_dict["properties"]["remedial_resources"]["description"]=f"An array of exactly {nb_of_gaps} objects, each containing information about a remedial resource"
-    except Exception as e:
-        error = f'Error setting description of remedial_resources, gap #: {nb_of_gaps}, schema = {remedial_schema_dict}, e={e}'
-        print("ERROR: ",error)
-        return jsonify({'error': error}), 400
-    #
-
-    try:
-        remedial_schema_dict["properties"]["remedial_resources"]["items"]["properties"]["gap"]["enum"] = gap_list
-    except Exception as e:
-        error = f'Error setting enum of remedial_resources gap, gap_list #: {gap_list}, schema = {remedial_schema_dict}, e={e}'
-        print("ERROR: ",error)
-        return jsonify({'error': error}), 400
-    #
-    try:
-        remedial_schema_dict["properties"]["remedial_resources"]["minItems"]=nb_of_gaps
-        remedial_schema_dict["properties"]["remedial_resources"]["maxItems"]=nb_of_gaps
-    except Exception as e:
-        error = f'Error setting minItems por maxItems of remedial_resources gap #: {nb_of_gaps}, schema = {remedial_schema_dict}, e={e}'
-        print("ERROR: ",error)
-        return jsonify({'error': error}), 400
-    #
-
-    # -----------------------------------------------
     # SWAP the REFERENCES into the remedial schema
     ref_data = None
     ref_list = None
@@ -1301,20 +1314,122 @@ def remedial_resources_endpoint():
     if not ref_data or not  ref_list or not ref_url_dict: return jsonify({'error': 'Could not obtain references data'}), 400
     print("Ref_data acquired")
 
-    try:
-        remedial_schema_dict["properties"]["remedial_resources"]["items"]["properties"]["sources"]["items"]["enum"] = ref_list
-    except Exception as e:
-        error = f'Error parsing remedial schema, e={e}'
-        print("ERROR: ",error)
-        return jsonify({'error': error}), 400
+    # -----------------------------------------------
+    remedial_schema_dict = None
+
+    if False:
+        '''
+        from schemas import REMEDIAL_SCHEMA
+
+        try:
+            remedial_schema_dict = json.loads(REMEDIAL_SCHEMA)
+        except Exception as e:
+            error = f'Error parsing remedial schema: {REMEDIAL_SCHEMA}, e={e}'
+            print("ERROR: ",error)
+            return jsonify({'error': error}), 400
+        #
+        
+        # --------------------------
+
+        try:
+            remedial_schema_dict["properties"]["remedial_resources"]["items"]["properties"]["sources"]["items"]["enum"] = ref_list
+        except Exception as e:
+            ee = f'Error updating remedial schema {remedial_schema_dict} with {ref_list}, e={e}'
+            print("ERROR: ",ee)
+            return jsonify({'error': ee}), 400
+        #
+
+        try:
+            remedial_schema_dict["properties"]["remedial_resources"]["description"]=f"An array of exactly {nb_of_gaps} objects, each containing information about a remedial resource"
+        except Exception as e:
+            error = f'Error setting description of remedial_resources, gap #: {nb_of_gaps}, schema = {remedial_schema_dict}, e={e}'
+            print("ERROR: ",error)
+            return jsonify({'error': error}), 400
+        # 
+    
+        try:
+            remedial_schema_dict["properties"]["remedial_resources"]["items"]["properties"]["gap"]["enum"] = gap_list
+        except Exception as e:
+            error = f'Error setting enum of remedial_resources gap, gap_list #: {gap_list}, schema = {remedial_schema_dict}, e={e}'
+            print("ERROR: ",error)
+            return jsonify({'error': error}), 400
+        #
+        try:
+            remedial_schema_dict["properties"]["remedial_resources"]["minItems"]=nb_of_gaps
+            remedial_schema_dict["properties"]["remedial_resources"]["maxItems"]=nb_of_gaps
+        except Exception as e:
+            error = f'Error setting minItems por maxItems of remedial_resources gap #: {nb_of_gaps}, schema = {remedial_schema_dict}, e={e}'
+            print("ERROR: ",error)
+            return jsonify({'error': error}), 400
+        #
+        '''
     #
+    else:
+        from schemas import REMEDIAL_SCHEMA_CONST
+        
+        # read the remedial schema into a dictionary
+        try:
+            remedial_schema_dict = json.loads(REMEDIAL_SCHEMA_CONST)
+        except Exception as e:
+            ee = f'Error converting {REMEDIAL_SCHEMA_CONST} into a dictionary, e={e}'
+            print("ERROR: ",ee)
+            return jsonify({'error': ee}), 400
+        #
+
+        # replacing references enum with actual enum
+        try:
+            remedial_schema_dict["definitions"]["references"]["items"]["properties"]["source"]["enum"]=ref_list
+        except Exception as e:
+            ee = f'Error updating remedial schema {remedial_schema_dict} with {ref_list}, e={e}'
+            print("ERROR: ",ee)
+            return jsonify({'error': ee}), 400
+        #
+
+        properties = {}
+        required = []
+        gap_index = 0
+        for gap_string in gap_list:
+            gap_name = f"gap_{gap_index}"
+            
+            gap_item = {}
+            gap_item["type"] = "object"
+            gap_item["properties"]= {}
+            gap_item["properties"]["gap"] = {}
+            gap_item["properties"]["gap"]["type"]="string"
+            gap_item["properties"]["gap"]["const"]=gap_string
+            gap_item["properties"]["sources"] = {}
+            gap_item["properties"]["sources"]["$ref"]="#/definitions/references"
+            gap_item["required"]=["gap", "sources"]
+
+            properties[gap_name] = gap_item
+            required.append(gap_name)
+
+            gap_index = gap_index + 1
+        #
+        try:
+            remedial_schema_dict["properties"]=properties
+        except Exception as e:
+            error = f'Error setting properties: {properties} into schema = {remedial_schema_dict}, e={e}'
+            print("ERROR: ",error)
+            return jsonify({'error': error}), 400
+        # 
+
+        try:
+            remedial_schema_dict["required"]=required
+        except Exception as e:
+            error = f'Error setting properties: {required} into schema = {remedial_schema_dict}, e={e}'
+            print("ERROR: ",error)
+            return jsonify({'error': error}), 400
+        #     
+    #
+    # -----------------------------------------------
 
 
     # convert dictionary into a string
     
     remedial_schema = json.dumps(remedial_schema_dict)
     if not remedial_schema_dict: return jsonify({'error': 'Could not obtain remedial schema'}), 400
-    print("Remedial schema generated")
+    print("Remedial schema generated: ",remedial_schema)
 
     system_prompt = data.get('system_prompt', REMEDIAL_SYSTEM_PROMPT)
     system_prompt += "<REFERENCES>\n"+references+"\n</REFERENCES>\n\n"
@@ -1341,47 +1456,82 @@ def remedial_resources_endpoint():
     print("Usage = ", usage)
     print("finish_reason = ", finish_reason)
 
-    if not remedial_result['remedial_resources']: 
-        ee = f'No remedial resources in openai response found: response = {result}, error = {error}'
-        print(ee)
-        return jsonify({'error': ee}), 400
-    #
-
-    # Process each item in 'remedial_resources'
-    for resource in remedial_result['remedial_resources']:
-        # Extract the list of references
-        references = resource['sources']
-        
-        # Validate and filter references
-        valid_references = []
-        for ref in references:
-            if ref in ref_url_dict:
-                valid_references.append(ref_url_dict[ref])
-            else:
-                print(f"Warning: Reference {ref} not found in the dictionary.")
-            #
-        #
-        # Replace the references with URLs
-        resource['sources'] = valid_references
-    #
+    print("# ***************************************************")
+    print("ref_url_dict = ", ref_url_dict)
     print("remedial_result = ", remedial_result)
-
-    # ***************** GENERATE SLIDES ************************
-    # Now, we will make a presentation-compatible json using those gathered information
-    slides = None
-    try:
-        slides = convert_to_presentation_json(remedial_result)
-    except Exception as e:
-        ee = f"Error converting to presentation json with passed arg: remedial_result = {remedial_result}, error = {e}"
-        print(ee)
-        return jsonify({'error': ee}), 500
-    #
-    if not slides:
-        ee = f"Error converting to presentation json returned None result, passed arg: remedial_result was = {remedial_result}, error = {e}"
-        print(ee)
-        return jsonify({'error': ee}), 500
-    #
+    print("# ***************************************************")
+    # ***************************************************
+    slides = process_remedial_result(remedial_result, ref_url_dict, gap_list)
     print("Slides = ", slides)
+
+    return slides
+    # ++++++++++++++++++++++++++++++++++++++++ PART X ++++++++++++++++++
+    # +++++++++++
+    # ++++++++++
+
+
+def process_remedial_result(remedial_result, ref_url_dict, gap_list):
+    remedial_dict = remedial_result
+
+    gap_index = 0
+    gap_objects = {}
+    slides = []
+    for gap_string in gap_list:
+        
+        gap_name = f"gap_{gap_index}"
+        if gap_name not in remedial_dict:
+            ee = f'Warning: {gap_name} not found in remedial_dict: {remedial_dict}'
+            print(ee)
+        else:
+
+            gap_item = remedial_dict[gap_name]
+            bullet_points_slide = None
+            if "gap" in gap_item and "sources" in gap_item:
+
+                gap = gap_item["gap"]
+                sources = gap_item["sources"]
+
+                bullet_points_slide = {
+                    "heading": gap,
+                    "bullet_points": []
+                }
+
+                print("gap = ", gap)
+                print("sources = ", sources)
+
+                #valid_sources = [] 
+                sources_bullet = []
+                slide_created = False
+                for source_obj in sources:
+                    if "source" in source_obj and "explanation" in source_obj:
+                        source = source_obj["source"]
+                        explanation = source_obj["explanation"]
+
+                        if source in ref_url_dict:
+                            url =  ref_url_dict[source]
+                            sources_bullet.append([url])
+                            sources_bullet.append([[explanation]])
+                            bullet_points_slide["bullet_points"] = sources_bullet
+                            slide_created = True
+                        else:
+                            print(f"Warning: Reference {source} not found in the dictionary.")
+                        #
+                    else:
+                        print(f"Warning: Reference 'source' or 'explanation' not found in source_obj:{source_obj}")
+                    #
+                #
+                if slide_created:
+                    slides.append(bullet_points_slide)
+                else:
+                    print("Warning: no slide created for gap = ", gap, " sources = ", sources, " gap_index = ", gap_index)
+                #
+            #                
+        #
+        gap_index = gap_index + 1
+    #    
+
+    #print(f"Advanced = {advanced}, slides = {slides}")
+    print(f"slides = {slides}")
     # **********************************************************
 
 
@@ -1394,4 +1544,19 @@ if __name__ == '__main__':
     # Example usage
     config = GlobalConfig()
     #print("log level = ", GlobalConfig.LOG_LEVEL)
+
+
+    ref_url_dict =  {'InvBanRes_0001': 'https://www.wallstreetoasis.com/resources/interviews/investment-banking-interview-questions-answers', 'InvBanRes_0002': 'https://www.streetofwalls.com/finance-training-courses/investment-banking-overview-and-behavioral-training/investment-banking-overview', 'InvBanRes_0003': 'https://mergersandinquisitions.com/investment-banking-interview-questions-and-answers/', 'InvBanRes_0004': 'https://mergersandinquisitions.com/investment-banking/recruitment/resumes/', 'InvBanRes_0005': 'https://mergersandinquisitions.com/how-to-get-into-investment-banking/#HowToGetIn', 'InvBanRes_0006': 'https://www.wallstreetprep.com/knowledge/ma-analyst-day-in-the-life/', 'InvBanRes_0007': 'https://www.investopedia.com/articles/financialcareers/10/investment-banking-interview.asp', 'InvBanRes_0008': 'https://corporatefinanceinstitute.com/resources/career/real-investment-banking-interview-questions-form/', 'InvBanRes_0009': 'https://igotanoffer.com/blogs/finance/investment-banking-interview-prep', 'InvBanRes_0010': 'https://www.indeed.com/career-advice/interviewing/investment-bank-interview-questions', 'PriEquRes_0001': 'https://www.streetofwalls.com/articles/private-equity/learn-the-basics/how-private-equity-works/', 'PriEquRes_0002': 'https://mergersandinquisitions.com/private-equity/recruitment/', 'PriEquRes_0003': 'https://www.streetofwalls.com/finance-training-courses/private-equity-training/private-equity-resume/', 'PriEquRes_0004': 'https://www.wallstreetoasis.com/resources/interviews/private-equity-interview-questions', 'PriEquRes_0005': 'https://mergersandinquisitions.com/private-equity-interviews/', 'PriEquRes_0006': 'https://mergersandinquisitions.com/private-equity/', 'PriEquRes_0007': 'https://www.wallstreetprep.com/knowledge/lbo-modeling-test-example-solutions/', 'PriEquRes_0008': 'https://www.wallstreetprep.com/knowledge/leveraged-buyout-lbo-modeling-1-hour-practice-test/', 'PriEquRes_0009': 'https://www.wallstreetprep.com/knowledge/advanced-lbo-modeling-test-4-hour-example/', 'PriEquRes_0010': 'https://growthequityinterviewguide.com/private-equity-interview-questions', 'VenCapRes_0001': 'https://www.wallstreetoasis.com/resources/interviews/venture-capital-interview-questions', 'VenCapRes_0002': 'https://mergersandinquisitions.com/venture-capital', 'VenCapRes_0003': 'https://mergersandinquisitions.com/venture-capital-interview-questions', 'VenCapRes_0004': 'https://www.wallstreetprep.com/knowledge/venture-capital-diligence/', 'VenCapRes_0005': 'https://www.investopedia.com/articles/financial-careers/08/venture-capital-interview-questions.asp', 'VenCapRes_0006': 'https://www.goingvc.com/post/the-ultimate-venture-capital-interview-guide', 'VenCapRes_0007': 'https://www.joinleland.com/library/a/50-most-common-venture-capital-interview-questions', 'VenCapRes_0008': 'https://sg.indeed.com/career-advice/interviewing/venture-capital-interview-questions', 'HedFunRes_0001': 'https://www.wallstreetoasis.com/resources/interviews/hedge-funds-interview-questions', 'HedFunRes_0002': 'https://www.wallstreetprep.com/knowledge/hedge-fund', 'HedFunRes_0003': 'https://mergersandinquisitions.com/how-to-get-a-job-at-a-hedge-fund/', 'HedFunRes_0004': 'https://www.streetofwalls.com/articles/hedge-fund/', 'HedFunRes_0005': 'https://www.wallstreetmojo.com/hedge-fund-interview-questions/', 'HedFunRes_0006': 'https://www.daytrading.com/hedge-fund-interview-questions', 'HedFunRes_0007': 'https://uk.indeed.com/career-advice/interviewing/hedge-fund-interview-questions', 'HedFunRes_0008': 'https://www.selbyjennings.com/blog/2023/05/preparing-for-a-hedge-fund-interview-your-comprehensive-guide', 'HedFunRes_0009': 'https://www.efinancialcareers.sg/news/2023/05/hedge-fund-interview-questions', 'HedFunRes_0010': 'https://www.buysidehustle.com/most-frequently-asked-hedge-fund-interview-questions-and-answers/', 'AccRes_0001': 'https://www.wallstreetoasis.com/resources/interviews/accounting-interview-questions', 'AccRes_0002': 'https://www.wallstreetprep.com/knowledge/operating-cash-flow-ocf/', 'AccRes_0003': 'https://www.robertwalters.co.uk/insights/career-advice/blog/five-accounting-interview-tips.html', 'AccRes_0004': 'https://www.shiksha.com/online-courses/articles/top-accounting-interview-questions-answers/', 'AccRes_0005': 'https://www.franklin.edu/blog/accounting-mvp/accounting-interview-questions', 'AccRes_0006': 'https://accountingsoftwareanswers.com/accounting-interview-questions/', 'AccRes_0007': 'https://www.sienaheights.edu/how-to-prepare-for-accounting-interview-questions/', 'RisAnaRes_0001': 'https://www.remoterocketship.com/advice/6-risk-analyst-interview-questions-with-sample-answers', 'RisAnaRes_0002': 'https://www.investopedia.com/articles/professionals/111115/common-interview-questions-credit-risk-analysts.asp', 'RisAnaRes_0003': 'https://www.ziprecruiter.com/career/job-interview-question-answers/risk-analyst', 'RisAnaRes_0004': 'https://www.indeed.com/career-advice/finding-a-job/how-to-become-risk-analyst', 'RisAnaRes_0005': 'https://www.theknowledgeacademy.com/blog/risk-management-interview-questions/', 'ITRes_0001': 'https://www.projectpro.io/article/financial-data-scientist/925', 'ITRes_0002': 'https://onlinedegrees.sandiego.edu/data-science-in-finance/', 'ITRes_0003': 'https://www.jobzmall.com/careers/financial-data-scientist/faqs/how-can-i-best-prepare-for-a-career-as-a-financial-data-scientist'}
+    remedial_result =  {'gap_0': {'gap': 'Direct Experience with High-Level Portfolio Management', 'sources': [{'source': 'HedFunRes_0002', 'explanation': 'Provides an introductory guide to understanding the basic concepts and strategies of hedge funds, relevant for gaining insights into high-level portfolio management.'}, {'source': 'HedFunRes_0003', 'explanation': 'Offers detailed strategies and advice for landing a job in the hedge fund industry, which often involves high-level portfolio management tasks.'}, {'source': 'HedFunRes_0004', 'explanation': 'A compilation of various articles providing in-depth insights into the hedge fund industry, which can help in understanding high-level portfolio management.'}]}, 'gap_1': {'gap': 'Advanced Knowledge of Financial Markets Products', 'sources': [{'source': 'InvBanRes_0010', 'explanation': 'Sample questions that may be asked during an investment banking interview, with guidance on how to respond, helping in understanding financial market products.'}, {'source': 'AccRes_0002', 'explanation': 'Explains the basics of calculating and analyzing free cash flow, an essential concept for advanced financial market products.'}, {'source': 'VenCapRes_0002', 'explanation': 'Provides a broad overview of the venture capital industry, including key players and processes, relevant for understanding advanced financial market products.'}]}, 'finish_reason': 'stop', 'usage': {'prompt_tokens': 5918, 'completion_tokens': 287, 'total_tokens': 6205}}
+    gap_list = ['Direct Experience with High-Level Portfolio Management', 'Advanced Knowledge of Financial Markets Products']
+    slides = process_remedial_result(remedial_result, ref_url_dict, gap_list)
+    print("Slides = \n\n", slides,"\n\n")
+
+    slide_json = json.dumps({"title":"Remedial resources", "subtitle":"A collection of resources to address gaps in knowledge", "slides": slides})
+    generate_powerpoint_presentation(
+        slide_json,
+        output_file_path=Path(Path.cwd(), "out", "__manu_was_here.pptx"),
+        slides_template='Blank'
+    )
+
     app.run(host='0.0.0.0', port=8501, debug=True)

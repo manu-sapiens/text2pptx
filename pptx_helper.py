@@ -145,9 +145,34 @@ def generate_powerpoint_presentation(
 
         for an_item in flat_items_list:
             paragraph = text_frame.add_paragraph()
-            paragraph.text = an_item[0]
-            paragraph.level = an_item[1]
 
+            text = an_item[0]
+            level = an_item[1]
+            # if text starts with "https://" or "http://", add a hyperlink
+            if text.startswith('https://') or text.startswith('http://'):
+                # find where the hyperlinks ends in the text and split into hyperlink_text and simple_text
+                idx = text.find(' ')
+                if idx > 0:
+                    hyperlink_url = text[:idx]
+                    hyperlink_text = text[idx + 1:]
+                    run = paragraph.add_run()
+                    hlink = run.hyperlink
+                    if hyperlink_text and hyperlink_text != "":
+                        run.text = hyperlink_text
+                    else:
+                        run.text = hyperlink_url
+                    #                        
+                    hlink.address = hyperlink_url
+                else:
+                    run = paragraph.add_run()
+                    run.text = text
+                    hlink = run.hyperlink
+                    hlink.address = text
+                #
+            else:
+                paragraph.text = text
+            #
+            paragraph.level = level
     # The thank-you slide
     #last_slide_layout = presentation.slide_layouts[0]
     #slide = presentation.slides.add_slide(last_slide_layout)

@@ -55,7 +55,55 @@ def gen_pptx(output_path, title, subtitle, template = "Entrevue_template_advance
     #
 #            
     
+def gen_pptx_external(output_path, title, subtitle, template = "Entrevue_template_advanced", url = "pptx/generate_presentation_advanced"):
+    json_response = ""
+    try:
+        with open(output_path, 'r') as f:
+            json_response = f.read()
+    except FileNotFoundError:
+        print(f"File {output_path} not found")
+        exit(1)
+    #
 
+    print("json_slides = ", json_response)
+    json_dict = json.loads(json_response)
+    print("json_dict = ", json_dict)
+    slides = json.dumps(json_dict["slides"])
+    print("slides = ", slides)
+    result_file_name = f"{uuid.uuid4().hex}.pptx"
+    data = {
+        "filename": result_file_name,
+        "slides": slides,
+        "template": template,
+        "title": title,
+        "subtitle": subtitle
+    }
+    
+    
+    url = f'https://text2pptx.onrender.com/{url}'
+    print("requesting to ", url)
+
+    headers = {'Content-Type': 'application/json'}
+
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        response.raise_for_status()  # Raise an exception for HTTP errors
+
+        # Get the presentation name from the response headers
+        json_file = response.headers.get('Content-Disposition',"default.pptx").split("filename=")[-1].strip('"' + "'")
+        print(f"Presentation name: {json_file}")
+        
+        # Save the response content to a file
+        output_path = './test/'+json_file
+        with open(output_path, 'wb') as f:
+            f.write(response.content)
+        print(f"Presentation saved to {output_path}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error during request: {e}")
+    #
+#        
 PORT = 8501
 def main(test_number):
     
@@ -728,6 +776,15 @@ def main(test_number):
             print(f"Error during request: {e}")
         #                    
     # 
+
+    if test_number == 15:
+        json_path = f'test/result.out_44ae103c061b4e96903a2d0a928dd00f.txt'
+        gen_pptx(json_path, "Knowledge Gap", "A remedial plan")
+
+    if test_number == 16:
+        json_path = f'./input/test_slide_simple.json'
+        gen_pptx_external(json_path,"Presentation Title", "Presentation Subtitle", "Entrevue_template" ,"pptx/generate_presentation")
+
 
 if __name__ == "__main__":
     # read the test number as the first passed argument
