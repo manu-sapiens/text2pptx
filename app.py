@@ -1249,6 +1249,10 @@ def remedial_resources_endpoint():
     print("-------")
     print("REQUEST = ")
     print(request)
+    print("REQUEST.json = ")
+    print(request.json)
+    print("REQUEST.get_json() = ")
+    print(request.get_json())
     print("-------")
     
     try:
