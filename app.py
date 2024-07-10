@@ -1245,6 +1245,11 @@ def remedial_resources_endpoint():
     from schemas import REMEDIAL_SYSTEM_PROMPT, REMEDIAL_REFERENCES
     data = None
     print("remedial_resources starting")
+
+    print("-------")
+    print("REQUEST = ")
+    print(request)
+    print("-------")
     
     try:
         data = request.get_json()
