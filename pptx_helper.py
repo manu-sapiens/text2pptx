@@ -46,17 +46,34 @@ def remove_slide_number_from_heading(header: str) -> str:
     return header
 
 
-def generate_powerpoint_presentation(
-        structured_data: str,
-        slides_template: str,
-        output_file_path: pathlib.Path
-) -> List:
+def split_slide_content(flat_items_list, max_chars_per_slide):
+    """Split content into multiple slides if it exceeds the maximum characters per slide."""
+    slides_content = []
+    current_slide_content = []
+    current_char_count = 0
+
+    for text, level in flat_items_list:
+        text_length = len(text)
+        if current_char_count + text_length > max_chars_per_slide:
+            slides_content.append(current_slide_content)
+            current_slide_content = []
+            current_char_count = 0
+        current_slide_content.append((text, level))
+        current_char_count += text_length
+    
+    if current_slide_content:
+        slides_content.append(current_slide_content)
+    
+    return slides_content
+
+def generate_powerpoint_presentation(structured_data: str, slides_template: str, output_file_path: pathlib.Path, max_chars_per_slide: int = 1000) -> List:
     """
     Create and save a PowerPoint presentation file containing the content in JSON format.
 
     :param structured_data: The presentation contents as "JSON" (may contain trailing commas)
     :param slides_template: The PPTX template to use
     :param output_file_path: The path of the PPTX file to save as
+    :param max_chars_per_slide: Maximum number of characters allowed per slide before splitting
     :return A list of presentation title and slides headers
     """
 
@@ -92,92 +109,69 @@ def generate_powerpoint_presentation(
     #
     all_headers = [title.text, ]
 
-    # background = slide.background
-    # background.fill.solid()
-    # background.fill.fore_color.rgb = RGBColor.from_string('C0C0C0')  # Silver
-    # title.text_frame.paragraphs[0].font.color.rgb = RGBColor(0, 0, 128)  # Navy blue
-    slides_parsed_data = None
-    if 'slides' in parsed_data: slides_parsed_data = parsed_data['slides']
+    slides_parsed_data = parsed_data.get('slides', None)
     if slides_parsed_data is None:
         error_message = 'No slides found in the parsed data'
         logging.error('error_message')
         print(error_message)
         return []
-    #
-    print("**************")
-    print("slides_parsed_data=",slides_parsed_data)
-    print("slides_parsed_data type=",type(slides_parsed_data))
-    print("slides_parsed_data len=", len(slides_parsed_data))
-    # if slides_parsed_data is of type string, convert it to a json dictionary
-    if type(slides_parsed_data) == str:
-        slides_parsed_data = json5.loads(slides_parsed_data)
-        print("AFTER CORRECTION:")
-        print("slides_parsed_data type=",type(slides_parsed_data))
-        print("slides_parsed_data len=", len(slides_parsed_data))    
-    #
-         
-    # Add contents in a loop    
+    
+    new_slides_data = []
+
     for a_slide in slides_parsed_data:
-        print("------------------")
-        print("a_slide=",a_slide)
-        if "type" in a_slide and a_slide["type"] == "sectionheader":
+        flat_items_list = get_flat_list_of_contents(a_slide['bullet_points'], level=0)
+        slides_content = split_slide_content(flat_items_list, max_chars_per_slide)
+        
+        for i, slide_content in enumerate(slides_content):
+            slide_data = {
+                'heading': a_slide['heading'] if i == 0 else f"{a_slide['heading']} (continued)",
+                'bullet_points': slide_content
+            }
+            new_slides_data.append(slide_data)
+
+    for slide_data in new_slides_data:
+        if "type" in slide_data and slide_data["type"] == "sectionheader":
             bullet_slide_layout = presentation.slide_layouts[2]
         else:
             bullet_slide_layout = presentation.slide_layouts[1]
-        #
         
         slide = presentation.slides.add_slide(bullet_slide_layout)
         shapes = slide.shapes
-
         title_shape = shapes.title
-            
-            
         body_shape = shapes.placeholders[1]
-        title_shape.text = remove_slide_number_from_heading(a_slide['heading'])
+        title_shape.text = remove_slide_number_from_heading(slide_data['heading'])
         all_headers.append(title_shape.text)
         text_frame = body_shape.text_frame
 
-        # The bullet_points may contain a nested hierarchy of JSON arrays
-        # In some scenarios, it may contain objects (dictionaries) because the LLM generated so
-        #  ^ The second scenario is not covered
-
-        flat_items_list = get_flat_list_of_contents(a_slide['bullet_points'], level=0)
-
-        for an_item in flat_items_list:
+        for text, level in slide_data['bullet_points']:
             paragraph = text_frame.add_paragraph()
+            
+            while text:
+                hyperlink_start = text.find('https://') if 'https://' in text else text.find('http://')
+                if hyperlink_start == -1:
+                    paragraph.add_run().text = text
+                    break
 
-            text = an_item[0]
-            level = an_item[1]
-            # if text starts with "https://" or "http://", add a hyperlink
-            if text.startswith('https://') or text.startswith('http://'):
-                # find where the hyperlinks ends in the text and split into hyperlink_text and simple_text
-                idx = text.find(' ')
-                if idx > 0:
-                    hyperlink_url = text[:idx]
-                    hyperlink_text = text[idx + 1:]
-                    run = paragraph.add_run()
-                    hlink = run.hyperlink
-                    if hyperlink_text and hyperlink_text != "":
-                        run.text = hyperlink_text
-                    else:
-                        run.text = hyperlink_url
-                    #                        
-                    hlink.address = hyperlink_url
+                # Add text before hyperlink
+                if hyperlink_start > 0:
+                    paragraph.add_run().text = text[:hyperlink_start]
+                    text = text[hyperlink_start:]
+
+                # Add hyperlink
+                hyperlink_end = text.find(' ', hyperlink_start)
+                if hyperlink_end == -1:
+                    hyperlink_url = text
+                    text = ''
                 else:
-                    run = paragraph.add_run()
-                    run.text = text
-                    hlink = run.hyperlink
-                    hlink.address = text
-                #
-            else:
-                paragraph.text = text
-            #
+                    hyperlink_url = text[:hyperlink_end]
+                    text = text[hyperlink_end + 1:]
+
+                run = paragraph.add_run()
+                run.text = hyperlink_url
+                hlink = run.hyperlink
+                hlink.address = hyperlink_url
+
             paragraph.level = level
-    # The thank-you slide
-    #last_slide_layout = presentation.slide_layouts[0]
-    #slide = presentation.slides.add_slide(last_slide_layout)
-    #title = slide.shapes.title
-    #title.text = 'Thank you!'
 
     presentation.save(output_file_path)
 
