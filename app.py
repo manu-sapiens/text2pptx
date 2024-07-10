@@ -1240,6 +1240,15 @@ def extract_gaps(gaps, api_key):
     return gap_list
 #    
 
+import base64
+def decode_base64(encoded_text):
+    padding_needed = 4 - (len(encoded_text) % 4)
+    if padding_needed:
+        encoded_text += "=" * padding_needed
+    decoded_bytes = base64.b64decode(encoded_text)
+    decoded_text = decoded_bytes.decode('utf-8')
+    return decoded_text
+
 @app.route('/llm/remedial_resources', methods=['POST'])
 def remedial_resources_endpoint():    
     from schemas import REMEDIAL_SYSTEM_PROMPT, REMEDIAL_REFERENCES
@@ -1263,7 +1272,12 @@ def remedial_resources_endpoint():
         return jsonify({'error': 'Error getting JSON data'}), 500
     #
     # -----------------------------------------------
+    encoded = data.get('encoded', False)
     gaps = data.get('gaps', None)
+    if encoded:
+        gaps = decode_base64(gaps)
+    #
+        
     print("gaps", gaps)
     if not gaps: return jsonify({'error': 'Missing gaps'}), 400
 
