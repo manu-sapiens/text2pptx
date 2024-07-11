@@ -1481,10 +1481,12 @@ def remedial_resources_endpoint():
     print("# ***************************************************")
     # ***************************************************
     slides = process_remedial_result(remedial_result, ref_url_dict, gap_list)
-    results = {"slides": slides}
-    print("results = ", results)
+    results_json = slides
+    results_text = json.dumps(results_json)
+    print("results_json = ", results_json)
+    print("results_text = ", results_text)
 
-    return results
+    return results_text
     # ++++++++++++++++++++++++++++++++++++++++ PART X ++++++++++++++++++
     # +++++++++++
     # ++++++++++
