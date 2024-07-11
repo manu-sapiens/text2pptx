@@ -1296,10 +1296,6 @@ def remedial_resources_endpoint():
     print("references = ", len(references))
     if not gaps: return jsonify({'error': 'Missing references'}), 400
 
-
-    advanced = data.get('advanced', False)
-    print("advanced = ", advanced)
-
     # *************** GAP LIST GENERATION ****************
     gap_list = None
     try:
@@ -1481,7 +1477,7 @@ def remedial_resources_endpoint():
     print("# ***************************************************")
     # ***************************************************
     slides = process_remedial_result(remedial_result, ref_url_dict, gap_list)
-    results_json = slides
+    results_json = {"full_response":slides, "usage":usage, "finish_reason":finish_reason, "model":model, "gaps":gaps, "encoded":encoded, "references":references, "gap_list":gap_list, "remedial_result":remedial_result, "remedial_schema":remedial_schema, "system_prompt":system_prompt, "user_prompt":user_prompt, "tool_name":tool_name, "tool_description":tool_description}
     results_text = json.dumps(results_json)
     print("results_json = ", results_json)
     print("results_text = ", results_text)
