@@ -45,25 +45,26 @@ def remove_slide_number_from_heading(header: str) -> str:
 
     return header
 
+def find_split_point(flat_items_list, max_chars_per_slide):
+    """Find the best split point around the character threshold, preferably at level=1."""
+    current_char_count = 0
+    for i, (text, level) in enumerate(flat_items_list):
+        current_char_count += len(text)
+        if current_char_count > max_chars_per_slide:
+            # Look for a level=1 item around the threshold
+            for j in range(max(0, i-3), min(len(flat_items_list), i+3)):
+                if flat_items_list[j][1] == 1:
+                    return j
+            return i
+    return len(flat_items_list)
 
 def split_slide_content(flat_items_list, max_chars_per_slide):
     """Split content into multiple slides if it exceeds the maximum characters per slide."""
     slides_content = []
-    current_slide_content = []
-    current_char_count = 0
-
-    for text, level in flat_items_list:
-        text_length = len(text)
-        if current_char_count + text_length > max_chars_per_slide:
-            slides_content.append(current_slide_content)
-            current_slide_content = []
-            current_char_count = 0
-        current_slide_content.append((text, level))
-        current_char_count += text_length
-    
-    if current_slide_content:
-        slides_content.append(current_slide_content)
-    
+    while flat_items_list:
+        split_point = find_split_point(flat_items_list, max_chars_per_slide)
+        slides_content.append(flat_items_list[:split_point])
+        flat_items_list = flat_items_list[split_point:]
     return slides_content
 
 def generate_powerpoint_presentation(structured_data: str, slides_template: str, output_file_path: pathlib.Path, max_chars_per_slide: int = 1000) -> List:
@@ -123,8 +124,12 @@ def generate_powerpoint_presentation(structured_data: str, slides_template: str,
         slides_content = split_slide_content(flat_items_list, max_chars_per_slide)
         
         for i, slide_content in enumerate(slides_content):
+            if i == 0:
+                slide_heading = a_slide['heading']
+            else:
+                slide_heading = f"{a_slide['heading']} (continued {i})" if i > 1 else f"{a_slide['heading']} (continued)"
             slide_data = {
-                'heading': a_slide['heading'] if i == 0 else f"{a_slide['heading']} (continued)",
+                'heading': slide_heading,
                 'bullet_points': slide_content
             }
             new_slides_data.append(slide_data)
@@ -176,8 +181,6 @@ def generate_powerpoint_presentation(structured_data: str, slides_template: str,
     presentation.save(output_file_path)
 
     return all_headers
-#
-
 def generate_powerpoint_presentation_advanced(
         structured_data: str,
         slides_template: str,
