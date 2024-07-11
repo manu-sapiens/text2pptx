@@ -67,6 +67,37 @@ def split_slide_content(flat_items_list, max_chars_per_slide):
         flat_items_list = flat_items_list[split_point:]
     return slides_content
 
+def cleanup_slides_data(data_string):
+    data_dict = None
+    try:
+        data_dict = json.loads(data_string)  # Convert JSON string to a dictionary
+    except Exception as e:
+        ee = f"Error parsing JSON data: {e} with data = {data_string}"
+        print(ee)
+        return data_string
+    #
+    if "slides" not in data_dict:
+        return data_string
+    #
+        
+    slides = data_dict["slides"]  # Access the slides array
+    processed_slides = []  # Initialize an empty list to store the processed elements
+
+    for element in slides:
+        if isinstance(element, str):
+            continue  # Skip if the element is a string
+        elif isinstance(element, dict):
+            processed_slides.append(element)  # Keep if the element is an object
+        elif isinstance(element, list):
+            for item in element:
+                if isinstance(item, dict):
+                    processed_slides.append(item)  # Insert each object from the array into the processed list
+
+    data_dict["slides"] = processed_slides  # Update the slides array with the processed elements
+    return json.dumps(data_dict, indent=4)  # Convert dictionary back to JSON string and return it
+#
+
+
 def generate_powerpoint_presentation(structured_data: str, slides_template: str, output_file_path: pathlib.Path, max_chars_per_slide: int = 1000) -> List:
     """
     Create and save a PowerPoint presentation file containing the content in JSON format.
@@ -78,8 +109,20 @@ def generate_powerpoint_presentation(structured_data: str, slides_template: str,
     :return A list of presentation title and slides headers
     """
 
+    BAD_STRING = "This is an example response from ChatGPT.,"
+    structured_data = structured_data.replace(BAD_STRING, "")
+    structured_data = cleanup_slides_data(structured_data)
+
     # The structured "JSON" might contain trailing commas, so using json5
-    parsed_data = json5.loads(structured_data)
+    parsed_data = None
+    try:
+        parsed_data = json5.loads(structured_data)
+    except Exception as e:
+        ee = f"Error parsing JSON5 data: {e} with data = {structured_data}"
+        logging.error(ee)
+        raise ValueError(ee)
+    #
+            
     config = GlobalConfig()
     
     logging.debug(
@@ -116,6 +159,10 @@ def generate_powerpoint_presentation(structured_data: str, slides_template: str,
         logging.error('error_message')
         print(error_message)
         return []
+    #
+
+
+
     
     new_slides_data = []
 
