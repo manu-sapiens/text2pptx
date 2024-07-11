@@ -745,16 +745,13 @@ def main(test_number):
         url = f'http://localhost:{PORT}/llm/remedial_resources'
         print("requesting to ", url)
         
-        headers = {'Content-Type': 'application/json'}
+        headers = {'Authorization': f'Bearer {api_key}','Content-Type': 'application/json'}
         data = {
             "gaps": knowledge_gap_string,
-            "api_key": api_key,
             "model:": "gpt-4o",
             "filename": "gaps_refs14.json"        
         }
-
-        
-
+    
         try:
             response = requests.post(url, headers=headers, data=json.dumps(data))
             response.raise_for_status()  # Raise an exception for HTTP errors

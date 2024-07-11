@@ -1252,6 +1252,8 @@ def decode_base64(encoded_text):
 @app.route('/llm/remedial_resources', methods=['POST'])
 def remedial_resources_endpoint():    
     from schemas import REMEDIAL_SYSTEM_PROMPT, REMEDIAL_REFERENCES
+
+
     data = None
     print("remedial_resources starting")
 
@@ -1264,6 +1266,15 @@ def remedial_resources_endpoint():
     print(request.get_json())
     print("-------")
     
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # Extract the API key from the header
+    api_key = auth_header.split(' ')[1]
+    #api_key = data.get('api_key', None)
+    #if not api_key: return jsonify({'error': 'Missing API key'}), 400
+
     try:
         data = request.get_json()
         print(data)
@@ -1285,8 +1296,6 @@ def remedial_resources_endpoint():
     print("references = ", len(references))
     if not gaps: return jsonify({'error': 'Missing references'}), 400
 
-    api_key = data.get('api_key', None)
-    if not api_key: return jsonify({'error': 'Missing API key'}), 400
 
     advanced = data.get('advanced', False)
     print("advanced = ", advanced)
