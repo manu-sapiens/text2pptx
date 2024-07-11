@@ -600,7 +600,7 @@ def generate_presentation_endpoint():
         config = GlobalConfig()
         data = request.get_json()
         
-        print("data = ", data)
+        print("data length = ", len(data) )
         
         template_name = data.get('template', 'Blank')
         download_filename = data.get('filename', 'output.pptx')
@@ -709,7 +709,7 @@ def simple_inference_endpoint():
         error = f"Error getting JSON data from request {request}. Error = {e}"
     #
 
-    print ("data = ", data)
+    print ("[/llm/infer] data = ", data)
     if data:
         try:
             result, error = simple_inference(data)

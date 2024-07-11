@@ -70,9 +70,9 @@ def split_slide_content(flat_items_list, max_chars_per_slide):
 def cleanup_slides_data(data_string):
     data_dict = None
     try:
-        data_dict = json.loads(data_string)  # Convert JSON string to a dictionary
+        data_dict = json5.loads(data_string)  # Convert JSON string to a dictionary
     except Exception as e:
-        ee = f"Error parsing JSON data: {e} with data = {data_string}"
+        ee = f"[cleanup_slides_data] Error parsing JSON data: {e} with data = {data_string}"
         print(ee)
         return data_string
     #
@@ -81,20 +81,50 @@ def cleanup_slides_data(data_string):
     #
         
     slides = data_dict["slides"]  # Access the slides array
+    #print("[cleanup_slides_data] slides = ", slides)
+
+    if isinstance(slides, str):
+        try:
+            print("Parsing JSON string for slides")
+            slides = json5.loads(slides)  # Convert JSON string to a dictionary
+        except Exception as e:
+            ee = f"[cleanup_slides_data] Error parsing JSON data: {e} with data = {slides}"
+            print(ee)
+            return data_string
+        #
+    #
+
+    # check if slides is an object or an array
+    if isinstance(slides, dict):
+        print("slides is a dictionary")
+        return data_string
+    elif isinstance(slides, list):
+        print("slides is a list")
+    else:
+        print("Slides is something else: ", type(slides))
+    #
+
     processed_slides = []  # Initialize an empty list to store the processed elements
 
+
     for element in slides:
+        element_string = json5.dumps(element)
         if isinstance(element, str):
             continue  # Skip if the element is a string
         elif isinstance(element, dict):
             processed_slides.append(element)  # Keep if the element is an object
         elif isinstance(element, list):
+            print("Breaking up a list" + str(element))
             for item in element:
                 if isinstance(item, dict):
                     processed_slides.append(item)  # Insert each object from the array into the processed list
+                #
+            #
+        #
+    #
 
     data_dict["slides"] = processed_slides  # Update the slides array with the processed elements
-    return json.dumps(data_dict, indent=4)  # Convert dictionary back to JSON string and return it
+    return json5.dumps(data_dict, indent=4)  # Convert dictionary back to JSON string and return it
 #
 
 

@@ -1,29 +1,997 @@
 {
   "slides":
+[
+  {
+    "heading": "Section 1: Resume Critique",
+    "type": "sectionheader",
+    "bullet_points": [
+      "This section prioritizes effective interview preparation. We'll analyze your resume and the job description to assess fit and identify key strengths and potential skill gaps.  A concise Overall Fit Score provides a starting point, while we highlight your top strengths relevant to the job. We'll also identify any crucial skills you can address through strategic interview talking points. This section lays the groundwork for the full report, offering a roadmap for interview success."
+    ]
+  },
+  {
+    "heading": "Overall Fit Assessment for OCBC Global Investment Banking Internship",
+    "bullet_points": [
+      "Moderate level of preparation needed for the interview.",
+      "Justification",
+      [
+        "Strong Technical Foundations: User has studied relevant subjects like linear algebra, probability, statistics, and machine learning, applicable to financial modeling tasks.",
+        "Practical Experience: Prior internship in equity research aligns with many responsibilities listed in the job description such as financial analysis and market trend analysis.",
+        "Demonstrated Analytical Skills: Projects and internships demonstrate the ability to clean, prepare, and analyze data, a key requirement for the role."
+      ]
+    ]
+  },
+  {
+    "heading": "User's Top Strengths and Positioning Narratives",
+    "bullet_points": [
+      "Strong Analytical Skills",
+      [
+        "Developed machine learning models to analyze HDB resale prices.",
+        "Conducted comprehensive financial analysis during equity research internship.",
+        "Utilized data visualization tools to present trends and insights."
+      ],
+      "Technical Proficiency",
+      [
+        "Proficiency in Python and R for data analysis and modeling tasks.",
+        "Familiarity with data analysis techniques like linear and logistic regression.",
+        "Experience in creating predictive models and summarizing results."
+      ],
+      "Commitment and Adaptability",
+      [
+        "Showed commitment to learning and development during equity research internship.",
+        "Effective time management and multitasking as demonstrated through tutoring and committee roles.",
+        "Successfully balanced academic, extracurricular activities, and part-time work."
+      ]
+    ]
+  },
+  {
+    "heading": "Identifying Skill Gaps and Recommendations",
+    "bullet_points": [
+      "Key Skill Gaps",
+      [
+        "Financial Modeling: User has some exposure but lacks advanced financial modeling experience listed in the job description.",
+        "Database Management: Experience with maintaining and developing databases is not explicitly demonstrated in the resume.",
+        "Client Presentation Prep: Although user has some project experience, direct involvement in preparing client presentations is limited."
+      ],
+      "Status and Elaboration",
+      [
+        "User already possesses a solid foundation in relevant skills but needs to gain or demonstrate practical application in financial modeling and database management."
+      ],
+      "Actionable Steps",
+      [
+        "Enhance Financial Skills: Take online courses or certifications on financial modeling.",
+        "Database Projects: Engage in projects or internships focusing on database management and trend analysis.",
+        "Presentation Skills: Practice creating and delivering presentations to enhance proficiency."
+      ]
+    ]
+  },
+  {
+    "heading": "Addressing Gaps with Strengths and Transferable Skills",
+    "bullet_points": [
+      "Enhancing Financial Modeling Skills",
+      [
+        "Highlight courses completed in quantitative finance and machine learning algorithms.",
+        "Discuss specific instances where these skills were applied during the predictive modeling project and equity research internship."
+      ],
+      "Database Management Acumen",
+      [
+        "Mention data cleaning and preparation work performed during HDB resale price project.",
+        "Relate practical application of building and managing data summaries during project work."
+      ],
+      "Client Presentation Experience",
+      [
+        "Draw parallels between preparing visualizations for machine learning models and client presentation preparation.",
+        "Emphasize attention to detail and clear communication demonstrated through tutoring and committee roles."
+      ]
+    ]
+  },
+  {
+    "heading": "Crafting a Strong Interview Narrative",
+    "bullet_points": [
+      "Relevance to Job",
+      [
+        "Emphasize the relevancy of analytical skills and technical knowledge gained through education and projects to the financial modeling tasks required for the role."
+      ],
+      "Narrative Development",
+      [
+        "Position the equity research internship experience as practical exposure to financial markets and analysis, directly aligning with internship responsibilities.",
+        "Highlight the adaptability and time management skills developed through juggling multiple responsibilities, underscoring the capability to manage diverse tasks in a fast-paced environment."
+      ],
+      "Action Plan Discussion",
+      [
+        "Detail the proactive steps taken to enhance skill set, such as taking additional courses or engaging in relevant projects, demonstrating a commitment to continuous learning and improvement."
+      ],
+      "Overall Summary",
+      [
+        "Reassure readiness for the role by weaving strengths into coherent narratives.",
+        "Directly align experience and skills with job requirements, while honestly addressing gaps and showing willingness to grow.",
+        "Convey enthusiasm for the opportunity to apply and further develop skills within a leading financial institution."
+      ]
+    ]
+  },
+  {
+    "heading": "Section 2: Job Description and Preparation Tasks Breakdown",
+    "type": "sectionheader",
+    "bullet_points": [
+      "Move beyond the initial analysis. Here, we dissect the job description, unpacking key requirements. We'll create a personalized to-do list with actionable tasks, leveraging your skills to bridge gaps and ensure you're interview-ready. This prioritized action plan becomes your roadmap to success."
+    ]
+  },
+  {
+    "heading": "Key Responsibilities and Qualifications for OCBC Internship",
+    "bullet_points": [
+      "Preparing Client Presentations",
+      [
+        "User will assist in creating presentations for clients, requiring strong communication and visualization skills.",
+        "Corpus Reference: Investment banking roles often involve extensive preparation of pitchbooks and marketing materials."
+      ],
+      "Database Management",
+      [
+        "Involves maintaining and developing databases to track market activities and analyze trends.",
+        "Corpus Reference: Essential for investment banking operations, ensuring efficiency and accuracy of transactions and data."
+      ],
+      "Assisting with Live Transactions",
+      [
+        "User will help coordinate logistics for roadshows, deal launches, and create information packages.",
+        "Corpus Reference: Supporting M&A and underwriting transactions is crucial in investment banking."
+      ],
+      "Financial Modeling",
+      [
+        "User is expected to perform financial modeling tasks, requiring proficiency in financial analysis and valuation techniques.",
+        "Corpus Reference: Financial modeling and valuation analysis are fundamental skills in investment banking."
+      ],
+      "Market Updates and Trend Analysis",
+      [
+        "User will support the team in preparing daily market updates.",
+        "Corpus Reference: Analyzing financial data to identify trends is critical for informed decision-making."
+      ]
+    ]
+  },
+  {
+    "heading": "Preparation Tasks for OCBC Internship",
+    "bullet_points": [
+      "Client Presentation Skills",
+      [
+        "Task: Start practicing with PowerPoint and Excel to create polished presentations.",
+        "Resource: Take a course on presentation skills (e.g., Coursera or Udemy).",
+        "Desired Outcome: Enhanced ability to produce clear and engaging client presentations."
+      ],
+      "Database Management Skills",
+      [
+        "Task: Learn database management through SQL courses.",
+        "Resource: Enroll in an SQL course from platforms like Codecademy or Khan Academy.",
+        "Desired Outcome: Ability to efficiently maintain and query databases to analyze market trends."
+      ],
+      "Financial Modeling Proficiency",
+      [
+        "Task: Complete a financial modeling and valuation course.",
+        "Resource: Use resources like Wall Street Prep or Breaking Into Wall Street.",
+        "Desired Outcome: Proficiency in building financial models and performing valuations, directly applicable to internship tasks."
+      ],
+      "Market Trend Analysis",
+      [
+        "Task: Subscribe to financial news and analytical platforms like Bloomberg.",
+        "Resource: Regularly read and analyze reports from Bloomberg and Financial Times.",
+        "Desired Outcome: Ability to prepare well-informed market updates and trend analyses."
+      ],
+      "Live Transaction Support",
+      [
+        "Task: Develop logistic planning and project management skills.",
+        "Resource: Use project management tools like Trello or Asana for practice.",
+        "Desired Outcome: Effectively manage and coordinate various aspects of live transactions."
+      ]
+    ]
+  },
+  {
+    "heading": "Personalized To-Do List for OCBC Internship Preparation",
+    "bullet_points": [
+      "Client Presentation Skills",
+      [
+        "Practice creating presentations using PowerPoint and Excel.",
+        "Take a presentation skills course on platforms like Coursera."
+      ],
+      "Database Management Skills",
+      [
+        "Learn SQL through Codecademy or Khan Academy courses.",
+        "Practice querying and maintaining sample databases."
+      ],
+      "Financial Modeling Proficiency",
+      [
+        "Complete a comprehensive financial modeling course from Wall Street Prep.",
+        "Build and analyze different financial models using sample data."
+      ],
+      "Market Trend Analysis",
+      [
+        "Subscribe and regularly read Bloomberg and Financial Times.",
+        "Write summaries and analyses of daily market trends."
+      ],
+      "Live Transaction Support",
+      [
+        "Develop logistic and project management skills using Trello.",
+        "Plan and execute a small-scale project to practice coordination and management skills."
+      ],
+      "Prioritization Based on Importance",
+      [
+        "Financial Modeling Proficiency: Essential for the majority of internship tasks.",
+        "Client Presentation Skills: Critical for preparing client-facing documents.",
+        "Database Management Skills: Important for tracking market activities efficiently.",
+        "Market Trend Analysis: Key for preparing insightful market updates.",
+        "Live Transaction Support: Necessary for assisting with the smooth execution of transactions."
+      ]
+    ]
+  },
+  {
+    "heading": "Section 3: Daily Action Plan (up to interview date)",
+    "type": "sectionheader",
+    "bullet_points": [
+      "We've transformed broad preparation tasks into a personalized daily plan for you. Considering today's date and your interview, we'll create a focused schedule. Identified tasks are prioritized based on importance, complexity, and remaining time.  Your resume critique is factored in to estimate daily time commitments."
+    ]
+  },
+  {
+    "heading": "5-Day Action Plan and Beyond",
+    "bullet_points": [
+      "Day 1: Financial Modeling",
+      [
+        "Priority: High",
+        "Tasks: Learning basics, completing exercises, building a foundational model.",
+        "Justification: Essential skill for the role; starts with the basics to build a strong foundation."
+      ],
+      "Day 2: Client Presentation Skills",
+      [
+        "Priority: High",
+        "Tasks: Creating a practice presentation, learning advanced PowerPoint techniques.",
+        "Justification: Critical for preparing client-facing documents and communications."
+      ],
+      "Day 3: Database Management",
+      [
+        "Priority: Medium",
+        "Tasks: Learning SQL basics, creating and querying sample databases.",
+        "Justification: Important for managing and analyzing market data efficiently."
+      ],
+      "Day 4: Market Trend Analysis",
+      [
+        "Priority: Medium",
+        "Tasks: Analyzing financial news, writing summaries.",
+        "Justification: Essential for creating daily market updates, understanding trends."
+      ],
+      "Day 5: Company Research and Logistic Planning",
+      [
+        "Priority: High",
+        "Tasks: Researching OCBC, learning about its culture and recent projects, planning interview logistics.",
+        "Justification: Understanding the employer is crucial for tailoring responses and questions during the interview."
+      ],
+      "Extended Preparation Schedule",
+      [
+        "Continued Financial Modeling: Advance to more complex models and case studies.",
+        "Enhanced Presentation Skills: Practice different types of presentations.",
+        "In-depth Database Management: Work on larger datasets and complex queries.",
+        "Detailed Market Analysis: Consistently follow and analyze market trends.",
+        "Networking: Connect with professionals in the industry for insights and advice."
+      ]
+    ]
+  },
+  {
+    "heading": "Day 1: Financial Modeling",
+    "bullet_points": [
+      "Learn Basics of Financial Modeling",
+      [
+        "Complete introductory course on financial modeling (Wall Street Prep or similar)."
+      ],
+      "Practice Basic Exercises",
+      [
+        "Work on provided exercises to reinforce learning."
+      ],
+      "Build a Foundational Model",
+      [
+        "Create a simple financial model using sample data."
+      ],
+      "Analyze Model Outputs",
+      [
+        "Interpret and summarize the outputs of your financial model."
+      ],
+      "Review and Refine",
+      [
+        "Revisit the model to make improvements based on initial findings."
+      ]
+    ]
+  },
+  {
+    "heading": "Day 2: Client Presentation Skills",
+    "bullet_points": [
+      "Practice Creating Presentations",
+      [
+        "Use PowerPoint to create a basic presentation on a chosen topic."
+      ],
+      "Learn Advanced Techniques",
+      [
+        "Watch tutorials on advanced PowerPoint techniques and features."
+      ],
+      "Create a Practice Client Presentation",
+      [
+        "Develop a presentation as if for a potential client, incorporating advanced techniques."
+      ],
+      "Rehearse Presentation Delivery",
+      [
+        "Practice delivering the presentation to ensure clarity and confidence."
+      ],
+      "Seek Feedback and Improve",
+      [
+        "Get feedback from peers and refine your presentation based on inputs."
+      ]
+    ]
+  },
+  {
+    "heading": "Day 3: Database Management",
+    "bullet_points": [
+      "Learn SQL Basics",
+      [
+        "Complete a beginner SQL course (Codecademy or similar)."
+      ],
+      "Practice Data Queries",
+      [
+        "Work on exercises involving basic SQL queries."
+      ],
+      "Create a Sample Database",
+      [
+        "Build a small database and populate it with sample data."
+      ],
+      "Perform Data Analysis",
+      [
+        "Use SQL to analyze and extract meaningful insights from your sample database."
+      ],
+      "Document Findings",
+      [
+        "Summarize and document your analysis for future reference."
+      ]
+    ]
+  },
+  {
+    "heading": "Day 4: Market Trend Analysis",
+    "bullet_points": [
+      "Subscribe to Financial News",
+      [
+        "Sign up for Bloomberg and Financial Times subscriptions."
+      ],
+      "Read and Analyze Reports",
+      [
+        "Daily reading of market reports and trend analyses."
+      ],
+      "Write Summaries",
+      [
+        "Write brief summaries and insights on the trends observed."
+      ],
+      "Compare Trends",
+      [
+        "Compare current market trends with historical data."
+      ],
+      "Practice Presentation of Findings",
+      [
+        "Present your trend analysis findings as a mini-report."
+      ]
+    ]
+  },
+  {
+    "heading": "Day 5: Company Research and Logistic Planning",
+    "bullet_points": [
+      "Research OCBC",
+      [
+        "Study OCBC’s history, culture, values, and recent projects."
+      ],
+      "Learn About the Team",
+      [
+        "Research the Global Investment Banking, Capital Markets team."
+      ],
+      "Network with Professionals",
+      [
+        "Connect with current or former interns/employees of OCBC."
+      ],
+      "Plan Interview Logistics",
+      [
+        "Organize all materials needed for the interview and plan your day."
+      ],
+      "Prepare Questions",
+      [
+        "Develop a list of insightful questions to ask during the interview."
+      ]
+    ]
+  },
+  {
+    "heading": "Additional Preparation Tasks",
+    "bullet_points": [
+      "Develop Advanced Financial Models",
+      [
+        "Continue learning and building complex financial models.",
+        "Justification: Going beyond basic models to ensure proficiency in advanced tasks."
+      ],
+      "Enhance Networking Efforts",
+      [
+        "Join finance-related groups, attend webinars.",
+        "Justification: Building a professional network can provide insights and opportunities."
+      ],
+      "Deep Dive into Market Analysis",
+      [
+        "Work on comprehensive market analysis projects.",
+        "Justification: Solidifying market understanding and improving analytical skills."
+      ]
+    ]
+  },
+  {
+    "heading": "Section 4: Knowledge Repository",
+    "type": "sectionheader",
+    "bullet_points": [
+      "This repository serves as your personal glossary of industry terms and technical skills mentioned in the job description. Each entry is explained clearly for easy understanding.  We've also linked relevant entries to both the 'Resume Critique' for potential skill gaps and the 'Daily Action Plan' for crucial interview."
+    ]
+  },
+  {
+    "heading": "Glossary of Technical Terms: Financial Modeling",
+    "bullet_points": [
+      "Discounted Cash Flow (DCF): A valuation method using projected cash flows and discounting them to present value.",
+      "Net Present Value (NPV): The value of all future cash flows over the entire life of an investment discounted to the present.",
+      "Internal Rate of Return (IRR): The discount rate that makes the net present value of all cash flows from a particular project equal to zero.",
+      "Comparable Company Analysis (CCA): Valuation method using metrics of peer companies to estimate the value of a company.",
+      "Precedent Transaction Analysis: A valuation method assessing the company's worth based on historical deals similar to the target company.",
+      "Leveraged Buyout (LBO): Acquisition of a company using a significant amount of borrowed money to meet the cost of acquisition.",
+      "Terminal Value: The value of a business at the end of the explicit forecast period.",
+      "Earnings Before Interest and Taxes (EBIT): An indicator of a company's profitability, calculated as revenue minus expenses excluding tax and interest.",
+      "Capital Expenditures (CapEx): Funds used by a company to acquire, upgrade, and maintain physical assets.",
+      "Free Cash Flow (FCF): The cash generated by a company after accounting for operating expenses and capital expenditures."
+    ]
+  },
+  {
+    "heading": "Glossary of Technical Terms: Investment Banking",
+    "bullet_points": [
+      "Initial Public Offering (IPO): The first sale of stock by a private company to the public.",
+      "Mergers and Acquisitions (M&A): Aspects of corporate strategy, finance, and management dealing with purchasing and/or joining with other companies.",
+      "Underwriting: The process through which an individual or institution takes on financial risk for a fee.",
+      "Syndicated Loans: Loans offered by a group of lenders who work together to provide funds for a single borrower.",
+      "Equity Research: The study and analysis of financial instruments and their market value to provide investment recommendations.",
+      "Debt Financing: Raising capital through the sale of bonds, bills, or notes to individual or institutional investors.",
+      "Equity Financing: Raising capital through the sale of shares to the public, institutional investors, or financial institutions.",
+      "Roadshow: A series of presentations made to investors by the management of a company seeking to go public or raise capital.",
+      "Book Building: The process of generating, capturing, and recording the interest of investors for an issuance of securities.",
+      "Issuer: An entity that develops, registers, and sells securities to finance its operations."
+    ]
+  },
+  {
+    "heading": "Glossary of Technical Terms: Financial Analysis",
+    "bullet_points": [
+      "Balance Sheet: A financial statement that reports a company's assets, liabilities, and shareholders' equity at a specific point in time.",
+      "Income Statement: A financial statement that shows a company's revenues and expenses over a period of time.",
+      "Cash Flow Statement: A financial statement that provides aggregate data regarding all cash inflows and outflows a company receives.",
+      "Return on Equity (ROE): A measure of financial performance calculated by dividing net income by shareholders' equity.",
+      "Price to Earnings Ratio (P/E): A valuation ratio of a company's current share price compared to its per-share earnings.",
+      "Debt to Equity Ratio: A measure of a company's financial leverage, calculated by dividing its total liabilities by shareholders' equity.",
+      "Gross Margin: The difference between revenue and cost of goods sold divided by revenue, expressed as a percentage.",
+      "Operating Margin: A measure of profitability calculated as operating income divided by revenue.",
+      "Liquidity Ratio: Measures a company's ability to pay off its short-term liabilities with its short-term assets.",
+      "Solvency Ratio: A measure of a company's ability to meet its long-term obligations."
+    ]
+  },
+  {
+    "heading": "Glossary of Technical Terms: Market Analysis",
+    "bullet_points": [
+      "Bull Market: A financial market in which prices are rising or are expected to rise.",
+      "Bear Market: A financial market in which prices are falling or are expected to fall.",
+      "Market Capitalization: The total market value of a company's outstanding shares of stock.",
+      "Price to Book Ratio (P/B): A ratio used to compare a firm's market value to its book value.",
+      "Volatility: A statistical measure of the dispersion of returns for a given security or market index.",
+      "Beta: A measure of a stock's volatility in relation to the market.",
+      "Alpha: A measure of an investment's performance against a market index used as a benchmark.",
+      "Sharpe Ratio: A measure that indicates the average return minus the risk-free return divided by the standard deviation of return on an investment.",
+      "Yield Curve: A line that plots the interest rates of bonds having equal credit quality but differing maturity dates.",
+      "Index Fund: A type of mutual fund with a portfolio constructed to match or track the components of a financial market index."
+    ]
+  },
+  {
+    "heading": "Glossary of Technical Terms: General Finance",
+    "bullet_points": [
+      "Assets: Resources owned by a company as a result of past events and from which future economic benefits are expected.",
+      "Liabilities: A company's legal financial debts or obligations that arise during the course of business operations.",
+      "Equity: The value of an owner's interest in a company, represented by assets minus liabilities.",
+      "Dividend: A distribution of a portion of a company's earnings to its shareholders.",
+      "Bond: A fixed income instrument that represents a loan made by an investor to a borrower.",
+      "Futures Contract: A standardized legal agreement to buy or sell something at a predetermined price at a specified time in the future.",
+      "Hedge Fund: An alternative investment using pooled funds that employ various strategies to earn returns for investors.",
+      "Mutual Fund: An investment vehicle made up of a pool of funds collected from many investors for the purpose of investing in securities.",
+      "Exchange-Traded Fund (ETF): A type of security that involves a collection of securities, such as stocks, and is sold on an exchange.",
+      "Credit Rating: An assessment of the creditworthiness of a borrower in general terms or with respect to a particular debt or financial obligation."
+    ]
+  },
+  {
+    "heading": "Section 5: Suggested Additional Readings",
+    "type": "sectionheader",
+    "bullet_points": [
+      "This section provides a personalized list of learning resources to address any knowledge gaps.  We analyzed your resume and the job description to target areas for improvement.  Dive into articles, online courses, and videos (all curated from our resource directory) to deepen your understanding and approach the interview with confidence."
+    ]
+  },
   [
     {
-      "type" : "sectionheader",
-      "heading": "A section",
+      "heading": "Financial Modeling: User has some exposure but lacks advanced financial modeling experience listed in the job description.",
       "bullet_points": [
-        ["Subtext 1"],
-        ["Subtext 2"]
+        [
+          "https://mergersandinquisitions.com/how-to-get-into-investment-banking/#HowToGetIn"
+        ],
+        [
+          [
+            "This resource provides strategies and steps for gaining deeper insights into financial modeling, essential for the role."
+          ]
+        ],
+        [
+          "https://igotanoffer.com/blogs/finance/investment-banking-interview-prep"
+        ],
+        [
+          [
+            "A prep guide specifically tailored for investment banking interviews that covers in-depth financial modeling techniques."
+          ]
+        ]
       ]
     },
     {
-      "heading": "Bullet Points",
-      "bullet_points": 
-      [
-        ["Level 1"],
-        ["Level 1"],
+      "heading": "Database Management: Experience with maintaining and developing databases is not explicitly demonstrated in the resume.",
+      "bullet_points": [
+        [
+          "https://www.streetofwalls.com/finance-training-courses/investment-banking-overview-and-behavioral-training/investment-banking-overview"
+        ],
         [
           [
-            "Level 2", "Level 2", 
-            [
-              "level 3", "level 3"
-            ]
-          ]],
-        ["Level 1"]
+            "Offers a detailed explanation of the roles within investment banking, including database management requirements."
+          ]
+        ],
+        [
+          "https://www.investopedia.com/articles/financialcareers/10/investment-banking-interview.asp"
+        ],
+        [
+          [
+            "Covers key topics and knowledge areas, including technical skills like database management, relevant for interview preparation."
+          ]
+        ]
+      ]
+    },
+    {
+      "heading": "Client Presentation Prep: While the user has some experience, direct involvement in preparing client presentations is limited.",
+      "bullet_points": [
+        [
+          "https://mergersandinquisitions.com/investment-banking/recruitment/resumes/"
+        ],
+        [
+          [
+            "Provides tips and examples on how to effectively showcase one's ability in client presentation preparation on a resume."
+          ]
+        ],
+        [
+          "https://www.indeed.com/career-advice/interviewing/investment-bank-interview-questions"
+        ],
+        [
+          [
+            "Offers sample questions that may touch upon client presentation skills, with guidance on how to address them effectively."
+          ]
+        ]
       ]
     }
-  ]
+  ],
+  {
+    "heading": "Section 6: Test Questions and Suggested Answers",
+    "type": "sectionheader",
+    "bullet_points": [
+      "Sharpen your interview skills! This section throws potential questions your way, covering both technical finance topics and revealing personal inquiries. But wait, there's more! We've crafted suggested answers tailored to your resume, highlighting your skills and experience.  Practice these questions and answers, and you'll be ready to shine in the real interview."
+    ]
+  },
+  {
+    "heading": "Personal Interview Questions: Motivation and Goals",
+    "bullet_points": [
+      "Why are you interested in an internship with OCBC Global Investment Banking?",
+      [
+        "I am keen on interning with OCBC because it is a leading financial institution known for its innovative approach in investment banking and capital markets.",
+        "My analytical skills and experience in financial analysis match well with the responsibilities outlined.",
+        "Emphasis on OCBC's reputation and market position.",
+        "Alignment of personal skills with job responsibilities.",
+        "Demonstrated interest in investment banking through academic pursuits and internships."
+      ],
+      "What are your long-term career goals, and how does this internship align with them?",
+      [
+        "My long-term career goal is to work in financial analysis and investment banking.",
+        "This internship will provide me with hands-on experience and exposure to capital markets, which is critical for achieving my career objectives.",
+        "Clear career objectives related to financial analysis.",
+        "Value of hands-on experience in achieving professional goals.",
+        "Internship's direct alignment with career trajectory."
+      ],
+      "What motivates you to pursue a career in investment banking?",
+      [
+        "The dynamic and challenging nature of investment banking, combined with the opportunity to make significant financial impacts motivates me.",
+        "My background in data analysis and financial research equips me to thrive in this field.",
+        "Mention of dynamic, challenging nature of the field.",
+        "Connection of personal motivation with professional skills.",
+        "Value of background in relevant areas like data analysis and financial research."
+      ],
+      "How do you stay informed about developments in the finance industry?",
+      [
+        "I regularly read financial news from Bloomberg and Financial Times, and follow market trends through professional research platforms.",
+        "This helps me stay updated and refine my analytical skills for better decision-making.",
+        "Regular engagement with financial news sources.",
+        "Utilization of professional research platforms.",
+        "Connection of information intake with skill refinement."
+      ]
+    ]
+  },
+  {
+    "heading": "Personal Interview Questions: Teamwork and Collaboration",
+    "bullet_points": [
+      "Describe a time you successfully worked as part of a team.",
+      [
+        "I worked as part of the NUS Science Club Bash Committee where I coordinated meetings and secured sponsors.",
+        "This experience improved my teamwork and negotiation skills.",
+        "Description of specific role and task within a team.",
+        "Development of teamwork and coordination skills.",
+        "Positive impact on committee's objectives."
+      ],
+      "How do you handle conflicts within a team?",
+      [
+        "I address conflicts by facilitating open communication and understanding each team member's perspective.",
+        "This approach promotes a collaborative environment and leads to effective resolution.",
+        "Emphasis on open communication.",
+        "Understanding and acknowledging different perspectives.",
+        "Promotion of collaboration and effective conflict resolution."
+      ],
+      "Can you provide an example of a collaborative project you worked on?",
+      [
+        "During my equity research internship at Wealspring Asset Management, I collaborated with colleagues to assess company health and performance using financial metrics.",
+        "This collaboration honed my analytical and teamwork abilities.",
+        "Specific example of collaboration in a professional setting.",
+        "Focus on analytical contributions and teamwork.",
+        "Positive outcome and skill enhancement."
+      ],
+      "How do you ensure effective communication within your team?",
+      [
+        "I make sure to communicate clearly and frequently, ensuring everyone is informed and on the same page.",
+        "This includes regular updates and active listening to team members.",
+        "Clear and frequent communication practices.",
+        "Importance of keeping everyone informed.",
+        "Utilization of active listening to understand team needs."
+      ]
+    ]
+  },
+  {
+    "heading": "Personal Interview Questions: Problem-Solving and Initiative",
+    "bullet_points": [
+      "Provide an example of how you solved a difficult problem.",
+      [
+        "During my HDB resale prices project, I faced a challenge with missing data that could impact model accuracy.",
+        "I implemented data cleaning techniques to address the gaps, ensuring reliable analysis.",
+        "Specific problem encountered in a project.",
+        "Application of appropriate problem-solving techniques.",
+        "Positive impact on project outcomes."
+      ],
+      "How do you approach a new and unfamiliar task?",
+      [
+        "I start by researching the task thoroughly, breaking it down into manageable parts, and seeking guidance when necessary.",
+        "This methodical approach ensures I can tackle tasks efficiently.",
+        "Initial research and understanding of the task.",
+        "Breaking down task into manageable parts.",
+        "Seeking guidance for efficient execution."
+      ],
+      "Describe a situation where you demonstrated initiative.",
+      [
+        "When tutoring, I identified students' weaknesses and developed tailored quizzes to address them.",
+        "This initiative greatly improved their understanding and grades.",
+        "Identification of a need and proactive initiative.",
+        "Development of tailored solutions.",
+        "Positive impact on students' performance."
+      ],
+      "How do you handle unexpected challenges?",
+      [
+        "I remain calm and assess the situation to find a viable solution.",
+        "During my internship, I encountered unexpected market changes and adjusted my analysis accordingly.",
+        "Remaining calm under pressure.",
+        "Assessing and adapting to unexpected situations.",
+        "Practical application of problem-solving in a professional setting."
+      ]
+    ]
+  },
+  {
+    "heading": "Personal Interview Questions: Adaptability and Learning",
+    "bullet_points": [
+      "How do you adapt to changes in your work environment?",
+      [
+        "I stay flexible and open to new methods and ideas.",
+        "During my equity research internship, I adapted quickly to new financial analysis tools introduced.",
+        "Importance of flexibility and openness.",
+        "Specific example of adapting to new tools or processes.",
+        "Positive outcome of adaptability."
+      ],
+      "What steps do you take to continue learning in your field?",
+      [
+        "I continually pursue online courses and certifications in data analysis and financial modeling.",
+        "Staying updated with the latest trends and technologies enhances my skillset.",
+        "Commitment to continuous learning through courses.",
+        "Staying updated with industry trends and technologies.",
+        "Enhancement of relevant skills for the job."
+      ],
+      "Can you share an experience where you had to quickly learn something new?",
+      [
+        "I quickly learned R programming for my predictive modeling project, enabling me to clean data and build accurate models.",
+        "This rapid learning was essential for the project's success.",
+        "Need for quick acquisition of a new skill.",
+        "Successful application of the new skill in a project.",
+        "Positive impact on project outcomes."
+      ],
+      "How do you keep yourself motivated during a challenging project?",
+      [
+        "I focus on the end goal and break down the project into smaller milestones.",
+        "This approach helps maintain motivation and ensures steady progress toward completion.",
+        "Focus on end goals and breaking projects into milestones.",
+        "Maintaining motivation through steady progress.",
+        "Personal strategy for overcoming challenges."
+      ]
+    ]
+  },
+  {
+    "heading": "Personal Interview Questions: Cultural Fit",
+    "bullet_points": [
+      "What values are important to you in a work environment?",
+      [
+        "Collaboration, integrity, and continuous learning are important to me.",
+        "These values align with my experience and the work culture at OCBC.",
+        "Highlighting personal values important in work.",
+        "Alignment with workplace culture.",
+        "Reinforcement of values through professional experience."
+      ],
+      "How do you contribute to a positive work environment?",
+      [
+        "I contribute by being a supportive team member, actively participating in collaborative projects, and maintaining a positive attitude.",
+        "My experience in the NUS Science Club reflects this approach.",
+        "Emphasis on supportiveness and collaboration.",
+        "Active participation in team projects.",
+        "Maintaining positivity and enthusiasm."
+      ],
+      "Describe a time when you went above and beyond your role to help a colleague.",
+      [
+        "As a tutor, I often stayed beyond scheduled hours to help students understand difficult concepts.",
+        "This willingness to go the extra mile improved their performance and my satisfaction.",
+        "Example of going above and beyond in tutoring.",
+        "Positive impact on students' understanding and performance.",
+        "Personal satisfaction from helping others."
+      ],
+      "How do you handle feedback and criticism in the workplace?",
+      [
+        "I view feedback as an opportunity for growth and improvement.",
+        "During my internship, I proactively sought feedback and made adjustments to enhance my performance.",
+        "Positive perspective on feedback and criticism.",
+        "Proactive approach to seeking and implementing feedback.",
+        "Enhanced performance through constructive criticism."
+      ]
+    ]
+  },
+  {
+    "heading": "Curveball Interview Questions: Industry-specific",
+    "bullet_points": [
+      "Explain how the current economic environment affects capital markets.",
+      [
+        "The current economic environment, marked by fluctuating interest rates and geopolitical instability, creates volatility in capital markets.",
+        "High-interest rates can lead to reduced investment and financing activities, while geopolitical instability can increase market risk and impact investment decisions."
+      ],
+      "Supporting Points",
+      [
+        "Fluctuating interest rates affecting investments.",
+        "Geopolitical instability increasing market risk.",
+        "Impact on financing activities and investment decisions."
+      ],
+      "How would you approach valuing a tech startup with no revenue?",
+      [
+        "Valuing a tech startup with no revenue involves focusing on qualitative factors like market potential, competitive advantage, and management team.",
+        "I would use methods such as comparable company analysis and venture capital valuation methods to estimate its value."
+      ],
+      "Supporting Points",
+      [
+        "Focus on qualitative factors: market potential, competitive advantage, management team.",
+        "Use comparable company analysis.",
+        "Apply venture capital valuation methods."
+      ],
+      "Describe the impact of blockchain technology on investment banking.",
+      [
+        "Blockchain technology enhances transparency, reduces transaction costs, and improves security in investment banking transactions.",
+        "It has the potential to streamline settlement processes and introduce new financial instruments."
+      ],
+      "Supporting Points",
+      [
+        "Enhances transparency and reduces costs.",
+        "Improves transaction security.",
+        "Streamlines settlement processes and introduces new instruments."
+      ],
+      "How do environmental, social, and governance (ESG) factors influence investment decisions?",
+      [
+        "ESG factors influence investment decisions by highlighting risks and opportunities related to sustainability and ethical practices.",
+        "Incorporating ESG considerations can lead to better long-term returns and align investments with societal values."
+      ],
+      "Supporting Points",
+      [
+        "Highlights sustainability and ethical risks.",
+        "Potential for better long-term returns.",
+        "Alignment with societal values."
+      ]
+    ]
+  },
+  {
+    "heading": "Curveball Interview Questions: Problem Solving",
+    "bullet_points": [
+      "If you were shrunk to the size of a pencil and put in a blender, how would you get out?",
+      [
+        "I would use the blender's ridges and my flexibility to climb out.",
+        "The challenge underscores the importance of creativity and resilience, much like solving complex investment banking problems."
+      ],
+      "Supporting Points",
+      [
+        "Emphasizes creativity and flexibility.",
+        "Highlights the importance of resilience.",
+        "Relates to overcoming complex problems."
+      ],
+      "How many golf balls can fit in a Boeing 747?",
+      [
+        "Estimating the volume of a Boeing 747 and a golf ball, and using that to calculate the number of golf balls.",
+        "This question tests analytical thinking and estimation skills crucial for financial analysis."
+      ],
+      "Supporting Points",
+      [
+        "Demonstrates analytical thinking.",
+        "Shows ability to estimate and calculate.",
+        "Highlights relevance to financial analysis."
+      ],
+      "How would you estimate the number of windows in New York City?",
+      [
+        "I would approach it by estimating the number of buildings and the average number of windows per building, adjusting for residential and commercial areas.",
+        "This showcases estimation skills and structured problem-solving."
+      ],
+      "Supporting Points",
+      [
+        "Structured estimation process.",
+        "Considers different types of buildings.",
+        "Demonstrates problem-solving skills."
+      ],
+      "If you had to eliminate one country from the map, which would it be and why?",
+      [
+        "I would choose a small, uninhabited island to minimize impact, highlighting the importance of careful consideration in decision-making.",
+        "This question underscores strategic thinking and sensitivity to global impacts."
+      ],
+      "Supporting Points",
+      [
+        "Strategic thinking in decision-making.",
+        "Minimizing impact and disruption.",
+        "Sensitivity to global consequences."
+      ]
+    ]
+  },
+  {
+    "heading": "Curveball Interview Questions: Creative Thinking",
+    "bullet_points": [
+      "If you were given an elephant, what would you do with it?",
+      [
+        "I would donate it to a zoo or sanctuary to ensure it gets proper care, demonstrating resourcefulness and ethical decision-making.",
+        "This reflects creative problem-solving in asset management."
+      ],
+      "Supporting Points",
+      [
+        "Resourceful solution.",
+        "Ethical decision-making.",
+        "Relates to asset management and problem-solving."
+      ],
+      "Design a new way to use a brick without using it for construction.",
+      [
+        "I would design it as an innovative bookend, showcasing the importance of versatility and creative repurposing in investment strategies."
+      ],
+      "Supporting Points",
+      [
+        "Versatility and repurposing.",
+        "Creative approach to problem-solving.",
+        "Reflects innovation in investment strategies."
+      ],
+      "If you could be any superhero, who would you be and why?",
+      [
+        "I would choose Spider-Man for his agility and problem-solving skills, reflecting the adaptability and strategic thinking required in investment banking."
+      ],
+      "Supporting Points",
+      [
+        "Agility and problem-solving.",
+        "Reflects adaptability.",
+        "Strategic thinking."
+      ],
+      "How would you market a product to a group of deaf people?",
+      [
+        "I would use visual aids, sign language interpreters, and written communication, showcasing my understanding of inclusive marketing and targeted communication strategies."
+      ],
+      "Supporting Points",
+      [
+        "Use of visual aids and sign language.",
+        "Inclusivity in marketing.",
+        "Targeted communication strategies."
+      ]
+    ]
+  },
+  {
+    "heading": "Curveball Interview Questions: Analytical Thinking",
+    "bullet_points": [
+      "How would you explain a complex financial concept to a five-year-old?",
+      [
+        "I would use simple analogies and basic language to explain the concept, demonstrating communication skills and the ability to simplify complex information."
+      ],
+      "Supporting Points",
+      [
+        "Use of simple analogies.",
+        "Clear, basic language.",
+        "Communication skills and simplification."
+      ],
+      "Describe a scenario where you had to make a quick decision.",
+      [
+        "During my equity research internship, I had to quickly reassess a company's valuation in response to a sudden market change, showcasing decisive and analytical abilities."
+      ],
+      "Supporting Points",
+      [
+        "Reassessment of valuation.",
+        "Response to market changes.",
+        "Decisive and analytical abilities."
+      ],
+      "If you were a CEO, what three concerns would be at the top of your mind?",
+      [
+        "Ensuring sustainable growth, maintaining workforce morale, and staying ahead of industry trends reflect strategic thinking and leadership qualities relevant to investment banking."
+      ],
+      "Supporting Points",
+      [
+        "Sustainable growth.",
+        "Workforce morale.",
+        "Industry trends and strategic thinking."
+      ],
+      "How would you calculate the square root of a large number without a calculator?",
+      [
+        "I would use the method of successive approximations or the Newton-Raphson method, demonstrating mathematical aptitude and problem-solving skills."
+      ],
+      "Supporting Points",
+      [
+        "Successive approximations.",
+        "Newton-Raphson method.",
+        "Mathematical aptitude and problem-solving."
+      ]
+    ]
+  },
+  {
+    "heading": "Curveball Interview Questions: Innovative Solutions",
+    "bullet_points": [
+      "How would you devise a plan to solve world hunger?",
+      [
+        "I would focus on sustainable agriculture, fair distribution, and reducing food waste to create a comprehensive plan, reflecting strategic planning and CSR commitment."
+      ],
+      "Supporting Points",
+      [
+        "Sustainable agriculture.",
+        "Fair distribution and reducing waste.",
+        "Strategic planning and CSR."
+      ],
+      "If you had to redesign the human species, what changes would you make?",
+      [
+        "I would enhance adaptability to changing environments and improve cooperative skills, highlighting the importance of innovation and collaborative abilities."
+      ],
+      "Supporting Points",
+      [
+        "Enhancing adaptability.",
+        "Improving cooperative skills.",
+        "Innovation and collaboration."
+      ],
+      "What would you do if you were given a million dollars but had to spend it in a single day?",
+      [
+        "I would invest in diversified assets and contribute to charitable causes, showcasing financial acumen and a sense of social responsibility."
+      ],
+      "Supporting Points",
+      [
+        "Investing in diversified assets.",
+        "Contributing to charities.",
+        "Financial acumen and social responsibility."
+      ],
+      "How can technology improve financial literacy?",
+      [
+        "Technology, through AI-driven apps and online courses, can democratize access to financial education, reflecting the integration of tech and finance to solve industry challenges."
+      ],
+      "Supporting Points",
+      [
+        "AI-driven applications.",
+        "Online financial literacy courses.",
+        "Integrating tech and finance."
+      ]
+    ]
+  }
+]
 }
