@@ -50,9 +50,13 @@ def gen_pptx(output_path, title, subtitle, template = "Entrevue_template_advance
             f.write(response.content)
         print(f"Presentation saved to {output_path}")
 
+        return response.content
+
     except requests.exceptions.RequestException as e:
         print(f"Error during request: {e}")
     #
+
+    return None
 #            
     
 def gen_pptx_external(output_path, title, subtitle, template = "Entrevue_template_advanced", url = "pptx/generate_presentation_advanced"):
@@ -748,8 +752,8 @@ def main(test_number):
         headers = {'Authorization': f'Bearer {api_key}','Content-Type': 'application/json'}
         data = {
             "gaps": knowledge_gap_string,
-            "model:": "gpt-4o",
-            "filename": "gaps_refs14.json"        
+            "model:": "gpt-4o-mini",
+            "filename": "gaps_refs15.json"        
         }
     
         try:
@@ -762,29 +766,60 @@ def main(test_number):
             print("headers =", response.headers)
             print("----------")
 
-            # Get the presentation name from the response headers
+            # Get the result name from the response headers
             json_file = response.headers.get('Content-Disposition',"result.out").split("filename=")[-1].strip('"' + "'")
             print(f"Presentation name: {json_file}")
             
             # Save the response content to a file
-            output_path = Path('./test/',json_file+"_"+uuid.uuid4().hex+".txt")
+            filename = json_file+"_"+uuid.uuid4().hex
+            output_path = Path('./test/',filename+".txt")
             with open(output_path, 'wb') as f:
                 f.write(response.content)
-            print(f"Presentation saved to {output_path}")
+            print(f"Response saved to {output_path}")
+
+            result = response.content
+            print("---------result-----------")
+            print(result)
+            
+            result_json = json.loads(result.decode('utf-8'))
+            print("---------result_json-----------")
+            print(result_json)
+
+            slides_json = {}
+            slides_json['slides'] = json.loads(result_json['full_response'])
+
+            # Save result_json to a JSON file
+            json_output_path = Path('./test/', filename + ".json")
+            with open(json_output_path, 'w') as json_file:
+                json.dump(slides_json, json_file, indent=4)
+            print(f"JSON saved to {json_output_path}")
+
+
         except requests.exceptions.RequestException as e:
             print(f"Error during request: {e}")
         #                    
     # 
 
     if test_number == 15:
-        json_path = f'test/result.out_44ae103c061b4e96903a2d0a928dd00f.txt'
-        gen_pptx(json_path, "Knowledge Gap", "A remedial plan")
+        #json_path = f'test/result.out_44ae103c061b4e96903a2d0a928dd00f.txt'
+        json_path = 'test/result.out_710bd5d5478e49f98e2c9685b3b8b722.txt'
+        result = gen_pptx(json_path, "Knowledge Gap", "A remedial plan")
+        print("---------result-----------")
+        print(result)
+        result_json = json.load(result)
+        print("---------result_json-----------")
+        print(result_json)
 
     if test_number == 16:
         json_path = f'./input/test_slide_simple.json'
         gen_pptx_external(json_path,"Presentation Title", "Presentation Subtitle", "Entrevue_template" ,"pptx/generate_presentation")
 
-
+    if test_number == 17:
+        result = '{"full_response": "[{\\"heading\\": \\"Direct Experience with High-Level Portfolio Management\\", \\"bullet_points\\": [[\\"https://mergersandinquisitions.com/private-equity/\\"], [[\\"Provides an overview of the private equity industry and links to portfolio management related to fixed income.\\"]], [\\"https://mergersandinquisitions.com/venture-capital\\"], [[\\"Offers insight into venture capital that can connect portfolio management practices.\\"]], [\\"https://www.wallstreetprep.com/knowledge/hedge-fund\\"], [[\\"Introduces basic concepts of hedge funds that involve comprehensive portfolio management.\\"]]]}, {\\"heading\\": \\"Advanced Knowledge of Financial Markets Products\\", \\"bullet_points\\": [[\\"https://mergersandinquisitions.com/how-to-get-a-job-at-a-hedge-fund/\\"], [[\\"Detailed strategies and advice for understanding specific financial market products related to hedge funds.\\"]], [\\"https://www.wallstreetprep.com/knowledge/operating-cash-flow-ocf/\\"], [[\\"Focuses on free cash flow, essential for understanding fixed-income investments.\\"]], [\\"https://onlinedegrees.sandiego.edu/data-science-in-finance/\\"], [[\\"Explores the role of data science in finance, particularly useful for advanced financial market product knowledge.\\"]]]}]", "usage": {"prompt_tokens": 6000, "completion_tokens": 252, "total_tokens": 6252}, "finish_reason": "stop", "model": "gpt-4o-mini"}'
+        result_json = json.loads(result)
+        slide_json =  json.loads(result_json['full_response'])
+        print(f"slide_json = {slide_json}")
+        
 if __name__ == "__main__":
     # read the test number as the first passed argument
     test_number = 1

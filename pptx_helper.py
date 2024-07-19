@@ -45,7 +45,7 @@ def remove_slide_number_from_heading(header: str) -> str:
 
     return header
 
-def find_split_point(flat_items_list, max_chars_per_slide):
+def find_split_point_org(flat_items_list, max_chars_per_slide):
     """Find the best split point around the character threshold, preferably at level=1."""
     current_char_count = 0
     for i, (text, level) in enumerate(flat_items_list):
@@ -56,6 +56,53 @@ def find_split_point(flat_items_list, max_chars_per_slide):
                 if flat_items_list[j][1] == 1:
                     return j
             return i
+    return len(flat_items_list)
+
+def find_split_point(flat_items_list, max_chars_per_slide):
+    """Find the best split point around the character threshold, preferably at level=1."""
+
+    min_chars_per_slide = max_chars_per_slide/4
+
+    current_char_count = 0
+    last_level1_index = -1
+    last_count_at_level1 = -1
+    last_level1_text = ""
+    last_level2_index = -1
+    last_count_at_level2 = -1
+    
+    for i, (text, level) in enumerate(flat_items_list):
+        current_char_count += len(text)
+
+        if level==0: 
+            last_level1_index = i
+            last_count_at_level1 = current_char_count
+            last_level1_text = text
+            print(f"Last level 1 found at: {last_level1_index} with count: {last_count_at_level1}")
+            #print(f"text = {text}")
+        elif level==1:
+            last_level2_index = i
+            last_count_at_level2 = current_char_count
+            #print(f"Last level 2 found at: {last_level2_index} with count: {last_count_at_level2}")
+            #print(f"text = {text}")
+        #        
+
+        if current_char_count > max_chars_per_slide:
+            print(f"Overflow detected for index: {i}, text = {text}, level = {level}")
+            
+            if last_level1_index != -1 and last_count_at_level1 > min_chars_per_slide:
+                # we return the last seen level 1 item for the splitting point
+                print(f"we return the last seen level 1 item for the splitting point: {last_level1_index} with text: {last_level1_text}")
+                return last_level1_index
+            elif last_level2_index != -1 and last_count_at_level2 > min_chars_per_slide:
+                # splitting at level 1 would result in 'too small' slide, but level 2 seems ok
+                print(f"we return the last seen level 2 item for the splitting point: {last_level2_index}")
+                return last_level2_index
+            #
+
+            # no good level 1 or 2 split. Might as well split right here
+            return i
+        #
+    #
     return len(flat_items_list)
 
 def split_slide_content(flat_items_list, max_chars_per_slide):
@@ -209,8 +256,11 @@ def generate_powerpoint_presentation(structured_data: str, slides_template: str,
                 'heading': slide_heading,
                 'bullet_points': slide_content
             }
+            if 'type' in a_slide: slide_data["type"] = a_slide['type']
             new_slides_data.append(slide_data)
-
+        #
+    #
+        
     for slide_data in new_slides_data:
         if "type" in slide_data and slide_data["type"] == "sectionheader":
             bullet_slide_layout = presentation.slide_layouts[2]
